@@ -1,6 +1,6 @@
 import { spawn } from 'node:child_process';
 
-const commands=[['dev',['run','dev']],['runner',['run','runner']]];
+const commands=[['dev:web',['run','dev:web']],['runner',['run','runner']]];
 const children=commands.map(([name,args]) => {
   const child=spawn('npm',args,{stdio:'inherit',env:{...process.env,FORCE_COLOR:'1'}});
   child.on('exit',(code) => {

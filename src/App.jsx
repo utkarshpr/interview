@@ -579,7 +579,7 @@ function LearningApp({ catalog, onLogout }) {
           </div>
         </header>
 
-        <AnimatePresence mode="wait" initial={false}><motion.div className="route-transition" key={activeSectionId || activeView} initial={{opacity:0,y:9,filter:"blur(3px)"}} animate={{opacity:1,y:0,filter:"blur(0px)"}} exit={{opacity:0,y:-5,filter:"blur(2px)"}} transition={{duration:.22,ease:"easeOut"}}>{activeSection ? <SectionView
+        <motion.div className="route-transition" key={activeSectionId || activeView} initial={{opacity:0,y:8}} animate={{opacity:1,y:0}} transition={{duration:.2,ease:"easeOut"}}>{activeSection ? <SectionView
           section={activeSection}
           catalog={catalog}
           completed={completed}
@@ -631,7 +631,7 @@ function LearningApp({ catalog, onLogout }) {
           onFinishSession={finishSession}
           onReviewItem={(item) => { openSection(item.section.id); setExpandedTopicId(item.topic.id); }}
           onOpenFlashcards={() => openFeature('flashcards')}
-        />}</motion.div></AnimatePresence>
+        />}</motion.div>
         <CloudSyncPanel store={store} onRestore={(cloudStore) => { if (cloudStore?.profiles?.length) setStore(cloudStore); }} visible={activeView === 'backup'} />
       </main>
 

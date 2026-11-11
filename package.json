@@ -4,9 +4,10 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "runner": "node runner/server.mjs",
+    "dev": "node dev.mjs",
+    "dev:web": "vite",
     "dev:all": "node dev.mjs",
+    "runner": "node runner/server.mjs",
     "build": "vite build",
     "preview": "vite preview"
   },

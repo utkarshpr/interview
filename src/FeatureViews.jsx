@@ -1,12 +1,38 @@
 import { useEffect, useMemo, useState } from 'react';
 import { resolvePrerequisites } from './data/prerequisites.js';
 import { resolveTopicContent } from './data/topicContent.js';
+import { codingExtras } from './data/codingExtras.js';
+import { guideFor } from './data/codingGuide.js';
 import { supabase } from './supabase.js';
 const stableStringify = (value) => JSON.stringify(value, (_key, item) => item && typeof item === 'object' && !Array.isArray(item)
   ? Object.keys(item).sort().reduce((sorted, key) => { sorted[key] = item[key]; return sorted; }, {})
   : item);
 
 const number = new Intl.NumberFormat('en');
+const GO_TEMPLATE = `package main
+
+import (
+	"bufio"
+	"fmt"
+	"os"
+)
+
+func main() {
+	in := bufio.NewReader(os.Stdin)
+	out := bufio.NewWriter(os.Stdout)
+	defer out.Flush()
+
+	var n int
+	fmt.Fscan(in, &n)
+	nums := make([]int, n)
+	for i := range nums {
+		fmt.Fscan(in, &nums[i])
+	}
+
+	// TODO: solve and print the answer
+	fmt.Fprintln(out, n)
+}
+`;
 const clean = (title) => title.replace(/^\d+(?:\.\d+)*[.)]?\s*/, '').replace(/^[A-D]\.\s*/, '').trim();
 const rubricCriteria = [
   ['correctness','Technical correctness','Accurate concepts and a sound solution'],
@@ -54,19 +80,28 @@ export function CodingPracticeView({ catalog, itemData, onSaveCoding }) {
   const [selectedId, setSelectedId] = useState(null);
   const [runnerAvailable, setRunnerAvailable] = useState(false);
   const [runnerStatus,setRunnerStatus]=useState('Checking local runner…');
+  const [runnerInfo,setRunnerInfo]=useState(null);
+  const [playInput,setPlayInput]=useState('');
+  const [playResult,setPlayResult]=useState(null);
+  const [playRunning,setPlayRunning]=useState(false);
   const [runnerRunning, setRunnerRunning] = useState(false);
   const [runError, setRunError] = useState('');
   const [runResults, setRunResults] = useState([]);
   useEffect(() => {
-    fetch('http://127.0.0.1:5174/api/health').then((response) => response.ok ? response.json() : null).then((result) => {const available=Boolean(result?.available);setRunnerAvailable(available);setRunnerStatus(available?'Local Docker runner ready · code stays on this machine':result?.reason || 'Start both services with npm run dev:all.');}).catch(() => {setRunnerAvailable(false);setRunnerStatus('Start both services with npm run dev:all.');});
+    fetch('http://127.0.0.1:5174/api/health').then((response) => response.ok ? response.json() : null).then((result) => {
+      const available=Boolean(result?.available);
+      setRunnerAvailable(available);setRunnerInfo(available?result:null);
+      setRunnerStatus(available?`${result.runner} ready · ${result.version||''} · ${result.isolated?'sandboxed in a container':'runs on this machine, nothing is uploaded'}`:result?.reason || 'The Go runner is not running. Start everything with npm run dev.');
+    }).catch(() => {setRunnerAvailable(false);setRunnerInfo(null);setRunnerStatus('The Go runner is not running. Start everything with npm run dev.');});
   }, []);
   const exercises = useMemo(() => catalog.sections.flatMap((section) =>
-    section.topics.flatMap((topic) => topic.items.filter((item) => item.kind === 'Exercise').map((item) => ({ ...item, section, topic })))
+    section.topics.flatMap((topic) => topic.items.filter((item) => item.kind === 'Exercise').map((item) => { const extra = codingExtras[item.id]; return { ...item, description: item.description || extra?.description, testCases: item.testCases?.length ? item.testCases : (extra?.testCases || []), section, topic }; }))
   ).sort((a,b) => Number(b.topic.track === 'striver-a2z') - Number(a.topic.track === 'striver-a2z')), [catalog]);
   const topicOptions = catalog.sections.filter((section) => sectionId === 'all' || section.id === sectionId).flatMap((section) => section.topics.filter((topic) => topic.items.some((item) => item.kind === 'Exercise')).map((topic) => ({id:topic.id,title:topic.title,sectionId:section.id,track:topic.track}))).sort((a,b) => Number(b.track === 'striver-a2z') - Number(a.track === 'striver-a2z'));
   const filtered = exercises.filter((entry) => (sectionId === 'all' || entry.section.id === sectionId) && (topicId === 'all' || entry.topic.id === topicId) && (difficulty === 'all' || entry.difficulty === difficulty) && (!query || entry.text.toLowerCase().includes(query.toLowerCase()) || entry.topic.title.toLowerCase().includes(query.toLowerCase())));
   const selected = filtered.find((entry) => entry.id === selectedId) || filtered[0];
   const saved = selected ? (itemData[selected.id]?.coding || {testCases:selected.testCases || []}) : {};
+  const guide = selected ? guideFor(selected, selected.section.title, selected.topic.title) : null;
   const suggestedLanguage = selected?.section.title.includes('Database') ? 'SQL' : selected?.section.title.includes('HLD') ? 'Design notes' : 'Go';
   const language = saved.language || suggestedLanguage;
   const fileExtension = ({Go:'go',SQL:'sql',Bash:'sh',YAML:'yaml',JSON:'json','Design notes':'md'})[language] || 'txt';
@@ -83,6 +118,24 @@ export function CodingPracticeView({ catalog, itemData, onSaveCoding }) {
       worker.postMessage({ setup:testCase.input || '', query:saved.solution || '' });
     });
   }
+  async function callRunner(cases) {
+    const response=await fetch('http://127.0.0.1:5174/api/run/go',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:saved.solution || '',testCases:cases})});
+    const result=await response.json();
+    if(!response.ok) {if(response.status===503){setRunnerAvailable(false);setRunnerStatus(result.error || 'No Go toolchain or Docker is available.');}throw new Error(result.error || 'The runner rejected this request.');}
+    return result;
+  }
+  async function runPlayground() {
+    if(!(saved.solution||'').trim()){setPlayResult({error:'Write some Go code first, or insert the template.'});return;}
+    setPlayRunning(true);setPlayResult(null);
+    const started=performance.now();
+    try {
+      const result=await callRunner([{input:playInput,expected:null}]);
+      const first=result.results?.[0]||{};
+      setPlayResult({...first,compileError:result.compileError||first.compileError?(result.compileError||first.stderr):'',ms:Math.round(performance.now()-started)});
+    } catch(error) { setPlayResult({error:error.message||'The Go runner could not be reached.'}); }
+    finally { setPlayRunning(false); }
+  }
+  function insertTemplate() { update({solution:GO_TEMPLATE,language:'Go'});setPlayResult(null);setRunResults([]); }
   async function runCases() {
     setRunnerRunning(true); setRunError(''); setRunResults([]);
     try {
@@ -104,14 +157,12 @@ export function CodingPracticeView({ catalog, itemData, onSaveCoding }) {
         if (results.length === cases.length && results.every((entry) => !entry.error)) update({testCases:cases.map((testCase,index) => ({...testCase,passed:Boolean(results[index]?.passed)}))});
         return;
       }
-      const response=await fetch('http://127.0.0.1:5174/api/run/go',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:saved.solution || '',testCases:saved.testCases || []})});
-      const result=await response.json();
-      if(!response.ok) {if(response.status===503){setRunnerAvailable(false);setRunnerStatus(result.error || 'Docker Desktop is not available.');}throw new Error(result.error || 'The runner rejected this request.');}
+      const result=await callRunner(saved.testCases || []);
       const results=result.results || [];
       setRunResults(results);
       if(results.length === (saved.testCases || []).length && results.every((entry) => !entry.error)) update({testCases:(saved.testCases || []).map((testCase,index) => ({...testCase,passed:Boolean(results[index]?.passed)}))});
-      const dockerError=results.find((entry) => entry.error)?.error;
-      if(dockerError) setRunError(dockerError);
+      const runnerError=result.compileError?`Compile error:\n${result.compileError}`:results.find((entry) => entry.error)?.error;
+      if(runnerError) setRunError(runnerError);
     } catch(error) { setRunError(error.message || 'The local runner could not be reached.'); }
     finally { setRunnerRunning(false); }
   }
@@ -124,7 +175,7 @@ export function CodingPracticeView({ catalog, itemData, onSaveCoding }) {
     <FeatureHeader eyebrow="CODING PRACTICE" title="Solve the problems yourself" subtitle="Work through guide exercises and the A2Z-aligned DSA progression. Save Go solutions, use sample cases, and track your practice." /><p className="a2z-sheet-link"><a href="https://takeuforward.org/prep-hub/strivers-a2z-dsa-sheet" target="_blank" rel="noreferrer">Open the official Striver A2Z DSA sheet ↗</a><span>Original local prompts are provided for practice; use the sheet for its full statements, hints, and editorials.</span></p>
     <div className="coding-filters"><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Find a coding exercise" aria-label="Search coding exercises"/><select value={sectionId} onChange={(event) => {setSectionId(event.target.value);setTopicId('all');setSelectedId(null);}} aria-label="Filter coding exercises by section"><option value="all">All sections</option>{catalog.sections.map((section) => <option key={section.id} value={section.id}>{section.title}</option>)}</select><select value={topicId} onChange={(event) => {setTopicId(event.target.value);setSelectedId(null);}} aria-label="Filter by problem topic"><option value="all">All problem topics</option>{topicOptions.map((topic) => <option key={topic.id} value={topic.id}>{topic.track === 'striver-a2z' ? 'A2Z · ' : ''}{topic.title}</option>)}</select><select value={difficulty} onChange={(event) => {setDifficulty(event.target.value);setSelectedId(null);}} aria-label="Filter by difficulty"><option value="all">All difficulties</option><option>Easy</option><option>Medium</option><option>Hard</option></select><span>{number.format(filtered.length)} exercises</span></div>
     <div className="coding-layout"><aside className="coding-list"><strong className="coding-list-title">Exercise library</strong>{filtered.slice(0,100).map((entry) => <button key={entry.id} className={`coding-exercise ${entry.id === selected?.id ? 'coding-exercise--active' : ''}`} onClick={() => {setSelectedId(entry.id);setRunResults([]);setRunError('');}}><span>{entry.text}</span><small>{entry.topic.title} · {entry.difficulty || 'Core'} · {entry.section.title}</small><b>{itemData[entry.id]?.coding?.solution?.trim() ? 'Solution saved' : 'Start'}</b></button>)}{filtered.length > 100 && <p>Search or choose a topic to narrow the exercise list.</p>}</aside>
-      {selected ? <main className="coding-workspace"><div className="coding-breadcrumb">{selected.section.title} <span>›</span> {selected.topic.title}</div><div className="coding-prompt-heading"><span className="coding-language">{language}</span>{selected.difficulty && <span className={`coding-difficulty coding-difficulty--${selected.difficulty.toLowerCase()}`}>{selected.difficulty}</span>}<span className="coding-done-mark">{saved.solution?.trim() ? 'Draft saved' : 'Not started'}</span></div><h2>{selected.text}</h2>{selected.description && <p className="coding-description">{selected.description}</p>}{selected.sourceUrl && <a className="coding-source-link" href={selected.sourceUrl} target="_blank" rel="noreferrer">Open this topic in the official A2Z sheet ↗</a>}{selected.pattern && <ProblemCoach item={selected}/>}<div className="coding-editor-heading"><label htmlFor="coding-solution">Your solution</label><select aria-label="Solution language" value={language} onChange={(event) => update({language:event.target.value})}><option>Go</option><option>SQL</option><option>Bash</option><option>YAML</option><option>JSON</option><option>Design notes</option></select><button className="secondary-button" onClick={downloadSolution}>Download {fileExtension}</button></div><textarea id="coding-solution" className="coding-editor" spellCheck="false" value={saved.solution || ''} onChange={(event) => {update({solution:event.target.value});setRunResults([]);}} placeholder={language === 'Go' ? 'package main\n\n// Write your solution here\n' : language === 'SQL' ? '-- Write your query here\n' : '## Approach\n\nDescribe the design and tradeoffs here.'}/><section className="coding-tests"><div className="coding-tests-heading"><div><h3>Example test cases</h3><p>{language === 'SQL' ? 'Put CREATE TABLE and INSERT statements in Input. Expected output is a JSON array of rows.' : 'Write inputs and expected results, then run them against your Go program.'}</p></div><div className="coding-test-actions">{(language === 'Go' || language === 'SQL') && <button className="primary-button run-cases-button" disabled={(language === 'Go' && !runnerAvailable) || runnerRunning || !(saved.testCases || []).length} onClick={runCases}>{runnerRunning ? 'Running…' : language === 'SQL' ? '▶ Run SQL' : runnerAvailable ? '▶ Run cases' : 'Runner offline'}</button>}<button className="secondary-button" onClick={addCase}>+ Add case</button></div></div>{language === 'Go' && <div className={`runner-status ${runnerAvailable ? 'runner-status--ready' : ''}`}>{runnerStatus}</div>}{language === 'SQL' && <div className="runner-status runner-status--ready">SQLite runs in a temporary browser worker · each query stops after 5 seconds</div>}{runError && <div className="runner-error" role="status">{runError}</div>}{(saved.testCases || []).length ? saved.testCases.map((testCase,index) => <article className="coding-test-case" key={index}><div className="coding-test-title"><strong>Case {index+1}</strong><button className="case-remove" onClick={() => removeCase(index)} aria-label={`Remove test case ${index+1}`}>Remove</button></div><label>{language === 'SQL' ? 'Setup SQL (schema and rows)' : 'Input'}<textarea value={testCase.input} rows={2} onChange={(event) => {updateCase(index,{input:event.target.value,passed:false});setRunResults([]);}} placeholder={language === 'SQL' ? 'CREATE TABLE trades (id INTEGER, symbol TEXT);\nINSERT INTO trades VALUES (1, \'ABC\');' : 'Example input'}/></label><label>Expected output<textarea value={testCase.expected} rows={2} onChange={(event) => {updateCase(index,{expected:event.target.value,passed:false});setRunResults([]);}} placeholder={language === 'SQL' ? '[{"id":1,"symbol":"ABC"}]' : 'Expected result'}/></label><div className={`case-result ${runResults[index]?.passed ? 'case-result--passed' : runResults[index] && !runResults[index].error ? 'case-result--failed' : ''}`}>{runResults[index] ? runResults[index].error ? `Runner error: ${runResults[index].error}` : runResults[index].exitCode !== 0 ? `Compiler/runtime output: ${runResults[index].stderr || '(no output)'}` : `Actual output: ${runResults[index].actual || '(empty)'}` : ''}</div><label className="case-passed"><input type="checkbox" checked={Boolean(testCase.passed)} onChange={(event) => updateCase(index,{passed:event.target.checked})}/> I ran this case and it passed</label></article>) : <div className="coding-no-tests">Add examples from the prompt or cases you want to verify.</div>}</section><div className="coding-run-note"><strong>{language === 'SQL' ? 'SQLite practice runner' : 'Run locally in Docker'}</strong><span>{language === 'SQL' ? 'SQL executes in an in-memory SQLite database inside a disposable Web Worker. It has no access to your files or network.' : 'Go programs run in an isolated container with network access disabled, memory/CPU/PID limits, no Linux capabilities, and a read-only source folder.'}</span></div></main> : <div className="feature-empty">No exercises match. Try changing the search or section.</div>}</div>
+      {selected ? <main className="coding-workspace"><div className="coding-breadcrumb">{selected.section.title} <span>›</span> {selected.topic.title}</div><div className="coding-prompt-heading"><span className="coding-language">{language}</span>{selected.difficulty && <span className={`coding-difficulty coding-difficulty--${selected.difficulty.toLowerCase()}`}>{selected.difficulty}</span>}<span className="coding-done-mark">{saved.solution?.trim() ? 'Draft saved' : 'Not started'}</span></div><h2>{selected.text}</h2>{selected.description && <p className="coding-description">{selected.description}</p>}{selected.sourceUrl && <a className="coding-source-link" href={selected.sourceUrl} target="_blank" rel="noreferrer">Open this topic in the official A2Z sheet ↗</a>}{guide && <ProblemCoach item={selected} guide={guide} hasCases={Boolean((saved.testCases || []).length)}/>}<div className="coding-editor-heading"><label htmlFor="coding-solution">Your solution</label><select aria-label="Solution language" value={language} onChange={(event) => update({language:event.target.value})}><option>Go</option><option>SQL</option><option>Bash</option><option>YAML</option><option>JSON</option><option>Design notes</option></select><button className="secondary-button" onClick={downloadSolution}>Download {fileExtension}</button></div><textarea id="coding-solution" className="coding-editor" spellCheck="false" value={saved.solution || ''} onChange={(event) => {update({solution:event.target.value});setRunResults([]);}} placeholder={language === 'Go' ? 'package main\n\n// Write your solution here\n' : language === 'SQL' ? '-- Write your query here\n' : '## Approach\n\nDescribe the design and tradeoffs here.'}/><section className="coding-playground"><div className="coding-tests-heading"><div><h3>Run your code</h3><p>{language === 'Go' ? 'Compile and run your Go program with your own input. The result appears below.' : 'Choose Go as the language to compile and run code here.'}</p></div><div className="coding-test-actions">{language === 'Go' && <><button className="secondary-button" onClick={insertTemplate}>Insert Go template</button><button className="primary-button run-cases-button" disabled={!runnerAvailable || playRunning} onClick={runPlayground}>{playRunning ? 'Running…' : runnerAvailable ? '▶ Run' : 'Runner offline'}</button></>}</div></div>{language === 'Go' && <><div className={`runner-status ${runnerAvailable ? 'runner-status--ready' : ''}`}>{runnerStatus}</div><label className="playground-input">Input (stdin)<textarea rows={3} value={playInput} onChange={(event) => setPlayInput(event.target.value)} placeholder={"Example:\n4 9\n2 7 11 15"} spellCheck="false"/></label>{(saved.testCases || []).length > 0 && <div className="playground-fill">Fill from a test case: {saved.testCases.map((testCase,index) => <button key={index} onClick={() => setPlayInput(testCase.input)}>Case {index+1}</button>)}</div>}{playResult && <div className={`playground-output ${playResult.error || playResult.compileError || playResult.exitCode ? 'playground-output--error' : ''}`}><div className="playground-output-head"><strong>{playResult.error ? 'Runner error' : playResult.compileError ? 'Compile error' : playResult.exitCode ? `Exited with code ${playResult.exitCode}` : 'Output'}</strong>{playResult.ms !== undefined && !playResult.error && <span>{playResult.ms} ms</span>}</div><pre>{playResult.error || playResult.compileError || ((playResult.stdout || '') + (playResult.stderr ? `\n${playResult.stderr}` : '')).trim() || '(no output)'}</pre></div>}</>}</section><section className="coding-tests"><div className="coding-tests-heading"><div><h3>Example test cases</h3><p>{language === 'SQL' ? 'Put CREATE TABLE and INSERT statements in Input. Expected output is a JSON array of rows.' : 'Write inputs and expected results, then run them against your Go program.'}</p></div><div className="coding-test-actions">{(language === 'Go' || language === 'SQL') && <button className="primary-button run-cases-button" disabled={(language === 'Go' && !runnerAvailable) || runnerRunning || !(saved.testCases || []).length} onClick={runCases}>{runnerRunning ? 'Running…' : language === 'SQL' ? '▶ Run SQL' : runnerAvailable ? '▶ Run all cases' : 'Runner offline'}</button>}<button className="secondary-button" onClick={addCase}>+ Add case</button></div></div>{language === 'SQL' && <div className="runner-status runner-status--ready">SQLite runs in a temporary browser worker · each query stops after 5 seconds</div>}{runError && <div className="runner-error" role="status">{runError}</div>}{(saved.testCases || []).length ? saved.testCases.map((testCase,index) => <article className="coding-test-case" key={index}><div className="coding-test-title"><strong>Case {index+1}</strong><button className="case-remove" onClick={() => removeCase(index)} aria-label={`Remove test case ${index+1}`}>Remove</button></div><label>{language === 'SQL' ? 'Setup SQL (schema and rows)' : 'Input'}<textarea value={testCase.input} rows={2} onChange={(event) => {updateCase(index,{input:event.target.value,passed:false});setRunResults([]);}} placeholder={language === 'SQL' ? 'CREATE TABLE trades (id INTEGER, symbol TEXT);\nINSERT INTO trades VALUES (1, \'ABC\');' : 'Example input'}/></label><label>Expected output<textarea value={testCase.expected} rows={2} onChange={(event) => {updateCase(index,{expected:event.target.value,passed:false});setRunResults([]);}} placeholder={language === 'SQL' ? '[{"id":1,"symbol":"ABC"}]' : 'Expected result'}/></label><div className={`case-result ${runResults[index]?.passed ? 'case-result--passed' : runResults[index] && !runResults[index].error ? 'case-result--failed' : ''}`}>{runResults[index] ? runResults[index].error ? `Runner error: ${runResults[index].error}` : runResults[index].exitCode !== 0 ? `Compiler/runtime output: ${runResults[index].stderr || '(no output)'}` : `Actual output: ${runResults[index].actual || '(empty)'}` : ''}</div><label className="case-passed"><input type="checkbox" checked={Boolean(testCase.passed)} onChange={(event) => updateCase(index,{passed:event.target.checked})}/> I ran this case and it passed</label></article>) : <div className="coding-no-tests">{language === 'Go' || language === 'SQL' ? 'This exercise is open-ended, so there is no fixed input and output. Use the "What to verify" list above to decide your own checks, and add a case if one fits.' : 'Use the "What to verify" list above as your checklist.'}</div>}</section><div className="coding-run-note"><strong>{language === 'SQL' ? 'SQLite practice runner' : runnerInfo?.isolated ? 'Run locally in Docker' : 'Run with your local Go toolchain'}</strong><span>{language === 'SQL' ? 'SQL executes in an in-memory SQLite database inside a disposable Web Worker. It has no access to your files or network.' : (runnerInfo?.isolated ? 'Go programs run in an isolated container with network access disabled, memory/CPU/PID limits, no Linux capabilities, and a read-only source folder.' : 'Your code is compiled and run by the Go installed on this computer, with a 10 second limit per run. Nothing is uploaded. Install Docker Desktop to run in a sandboxed container instead.')}</span></div></main> : <div className="feature-empty">No exercises match. Try changing the search or section.</div>}</div>
   </div>;
 }
 
@@ -418,7 +469,19 @@ function RubricSummary({ rubric = {} }) {
 }
 
 function FeatureHeader({ eyebrow, title, subtitle }) { return <header className="feature-header"><div className="eyebrow"><span className="eyebrow-mark"/>{eyebrow}</div><h1>{title}</h1><p>{subtitle}</p></header>; }
-function ProblemCoach({ item }) { return <section className="problem-coach"><div className="problem-pattern"><strong>Pattern</strong><span>{item.pattern}</span></div>{item.constraints&&<p><strong>Constraints</strong><span>{item.constraints}</span></p>}{item.hints?.length>0&&<details><summary>Progressive hints</summary><ol>{item.hints.map((hint,index)=><li key={`${item.id}-hint-${index}`}>{hint}</li>)}</ol></details>}{item.approach&&<details><summary>Brute force → optimized approach</summary><div className="problem-approach"><p><strong>Brute force</strong>{item.approach.bruteForce}</p><p><strong>Optimized</strong>{item.approach.optimized}</p>{item.approach.complexity&&<p><strong>Complexity goal</strong>{item.approach.complexity}</p>}</div></details>}</section>; }
+function ProblemCoach({ item, guide, hasCases }) {
+  const curated = Boolean(item.pattern);
+  const data = curated ? item : guide;
+  const [first, second] = guide.labels;
+  return <section className="problem-coach">
+    {!curated && <div className="coach-badge">Suggested approach · a starting point, check it against the full problem</div>}
+    <div className="problem-pattern"><strong>Pattern</strong><span>{data.pattern}</span></div>
+    {item.constraints && <p><strong>Constraints</strong><span>{item.constraints}</span></p>}
+    {data.hints?.length > 0 && <details><summary>{curated ? 'Progressive hints' : 'Hints'}</summary><ol>{data.hints.map((hint, index) => <li key={`${item.id}-hint-${index}`}>{hint}</li>)}</ol></details>}
+    {data.approach && <details><summary>{first} → {second}</summary><div className="problem-approach"><p><strong>{first}</strong>{data.approach.bruteForce}</p><p><strong>{second}</strong>{data.approach.optimized}</p>{data.approach.complexity && <p><strong>Complexity goal</strong>{data.approach.complexity}</p>}</div></details>}
+    {guide.checks?.length > 0 && <details open={!hasCases}><summary>{hasCases ? 'More cases worth testing' : 'What to verify'}</summary><ul className="coach-checks">{guide.checks.map((check) => <li key={check}>{check}</li>)}</ul></details>}
+  </section>;
+}
 function InsightMetric({ value, label }) { return <article className="insight-metric"><strong>{value}</strong><span>{label}</span></article>; }
 function csvCell(value) { return `"${String(value).replaceAll('"','""')}"`; }
 function slug(value) { return String(value || 'learner').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'') || 'learner'; }
