@@ -6,7 +6,7 @@ import { resolveTopicContent } from './data/topicContent.js';
 import { HLDWhiteboard, LLDStudio } from './DesignViews.jsx';
 import { supabase, supabaseConfigured, adminEmail } from './supabase.js';
 import { AnimatePresence, LazyMotion, MotionConfig, domAnimation, m as motion } from 'framer-motion';
-import { ArrowRight, BookOpen, Menu, Moon, Sun, X, CalendarDays, ChartNoAxesCombined, ChevronDown, Cloud, Code2, Database, Eye, EyeOff, Layers3, LayoutDashboard, LoaderCircle, LockKeyhole, LogOut, Mail, Map as MapIcon, Mic2, Network, PencilLine, Repeat2, ShieldCheck, Sparkles, StickyNote } from 'lucide-react';
+import { ArrowRight, BookOpen, Download, Menu, Moon, Sun, X, CalendarDays, ChartNoAxesCombined, ChevronDown, Cloud, Code2, Database, Eye, EyeOff, Layers3, LayoutDashboard, LoaderCircle, LockKeyhole, LogOut, Mail, Map as MapIcon, Mic2, Network, PencilLine, Repeat2, ShieldCheck, Sparkles, StickyNote } from 'lucide-react';
 
 const STORAGE_KEY = 'backend-atlas.progress.v1';
 const fmt = new Intl.NumberFormat('en');
@@ -172,6 +172,20 @@ function LearningApp({ catalog, onLogout }) {
   const [profileMenu, setProfileMenu] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
+  const [installEvent, setInstallEvent] = useState(null);
+  useEffect(() => {
+    const onPrompt = (event) => { event.preventDefault(); setInstallEvent(event); };
+    const onInstalled = () => setInstallEvent(null);
+    window.addEventListener('beforeinstallprompt', onPrompt);
+    window.addEventListener('appinstalled', onInstalled);
+    return () => { window.removeEventListener('beforeinstallprompt', onPrompt); window.removeEventListener('appinstalled', onInstalled); };
+  }, []);
+  async function installApp() {
+    if (!installEvent) return;
+    installEvent.prompt();
+    await installEvent.userChoice.catch(() => {});
+    setInstallEvent(null);
+  }
   const [clock, setClock] = useState(Date.now());
   const [reminderMessage, setReminderMessage] = useState('');
   const searchRef = useRef(null);
@@ -476,6 +490,7 @@ function LearningApp({ catalog, onLogout }) {
           <div className="breadcrumbs"><span>Learning workspace</span><b>/</b><strong>{activeSection ? activeSection.title : ({ roadmap:'24-week roadmap', practice:'Practice answers', coding:'Coding practice', mock:'Mock interview', flashcards:'Flashcards', notes:'Notes', calendar:'Interview & event calendar', dbcheck:'Database status', hldboard:'HLD whiteboard', lld:'LLD practice', insights:'Progress insights', backup:'Backup & sync' }[activeView] || 'Overview')}</strong></div>
           <div className="top-actions">
             <a className="guide-link" href="/senior-backend-interview-preparation.pdf" target="_blank" rel="noreferrer"><BookOpen size={15}/> Open guide PDF</a>
+            {installEvent && <button className="install-button" onClick={installApp} title="Install Backend Atlas as an app"><Download size={15}/><span>Install app</span></button>}
             <button className="mode-toggle" onClick={toggleColorMode} aria-label={isLight ? 'Switch to dark mode' : 'Switch to light mode'} title={isLight ? 'Switch to dark mode' : 'Switch to light mode'}>{isLight ? <Moon size={16}/> : <Sun size={16}/>}</button>
             <div className="theme-menu-wrap">
               <button className="theme-trigger" aria-expanded={themeOpen} aria-label="Choose appearance theme" onClick={() => setThemeOpen((value) => !value)}><span className="theme-trigger-dot" style={{background:themes.find((entry)=>entry.id===theme)?.colors[1]}}/><span>Theme</span><ChevronDown size={14}/></button>

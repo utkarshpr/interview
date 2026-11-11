@@ -1,0 +1,145 @@
+/* ===== Study tools: one design language shared with the home page =====
+   Everything here uses the --ui-* theme tokens, so it follows light/dark and
+   every accent preset automatically. */
+.app-shell[data-theme] { --ui-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 16px 40px -20px rgba(0,0,0,.6); --ui-ring:color-mix(in srgb,var(--ui-accent) 30%,transparent); }
+.app-shell[data-theme="light"] { --ui-shadow:0 1px 2px rgba(22,32,51,.05),0 16px 36px -18px rgba(22,32,51,.16); }
+
+/* --- Page header becomes a hero panel --- */
+.app-shell[data-theme] .feature-page { max-width:1280px; margin-inline:auto; }
+.app-shell[data-theme] .feature-page > .feature-header {
+  position:relative; overflow:hidden; margin:0 0 26px; padding:clamp(22px,3vw,36px) clamp(20px,3.2vw,40px);
+  border:1px solid var(--ui-border); border-radius:24px; box-shadow:var(--ui-shadow);
+  background:
+    radial-gradient(ellipse 60% 120% at 100% 0%,color-mix(in srgb,var(--ui-accent) 20%,transparent),transparent 70%),
+    radial-gradient(ellipse 40% 90% at 0% 100%,color-mix(in srgb,var(--ui-accent) 8%,transparent),transparent 70%),
+    var(--ui-surface);
+}
+.app-shell[data-theme] .feature-page > .feature-header::after { content:""; position:absolute; right:-40px; top:-40px; width:190px; height:190px; border:1px solid color-mix(in srgb,var(--ui-accent) 22%,transparent); border-radius:50%; box-shadow:0 0 0 28px color-mix(in srgb,var(--ui-accent) 5%,transparent),0 0 0 62px color-mix(in srgb,var(--ui-accent) 3%,transparent); pointer-events:none; }
+.app-shell[data-theme] .feature-header h1 { margin:14px 0 10px; font-size:clamp(28px,3.4vw,40px); }
+.app-shell[data-theme] .feature-header > p { position:relative; z-index:1; margin:0; }
+
+/* --- Shared surfaces --- */
+.app-shell[data-theme] .page-content :is(.practice-prompt-list,.practice-editor,.coding-list,.coding-workspace,.mock-setup-card,.mock-session-card,.insight-card,.insight-metric,.backup-card,.notes-list,.note-editor,.calendar-card,.calendar-detail,.interview-tracker,.db-status-card,.db-check-details,.lld-problem-list,.lld-workspace,.whiteboard-properties,.sync-panel,.study-tool-card,.review-answer-card,.answer-rubric) {
+  border:1px solid var(--ui-border); border-radius:20px; background:var(--ui-surface); box-shadow:var(--ui-shadow);
+}
+.app-shell[data-theme] .page-content :is(.practice-editor,.coding-workspace,.lld-workspace,.note-editor,.mock-setup-card,.mock-session-card) { padding:clamp(18px,2.4vw,28px); }
+.app-shell[data-theme] .page-content :is(.insight-card,.backup-card,.calendar-card,.calendar-detail,.interview-tracker,.db-status-card,.db-check-details,.sync-panel) { padding:clamp(16px,2vw,24px); }
+.app-shell[data-theme] .page-content :is(.insight-card,.backup-card,.calendar-card,.interview-tracker,.db-status-card,.note-editor,.lld-workspace):hover { transform:none; box-shadow:var(--ui-shadow); }
+
+/* --- Stat tiles (Insights) --- */
+.app-shell[data-theme] .page-content .insight-summary-grid { gap:14px; margin-bottom:18px; }
+.app-shell[data-theme] .page-content .insight-metric { position:relative; overflow:hidden; gap:8px; padding:20px 20px 18px; }
+.app-shell[data-theme] .page-content .insight-metric::before { content:""; position:absolute; inset:0 0 auto 0; height:3px; background:linear-gradient(90deg,var(--ui-accent),transparent 85%); }
+.app-shell[data-theme] .page-content .insight-metric strong { font-size:clamp(26px,2.6vw,34px); line-height:1; letter-spacing:-1px; color:var(--ui-text); }
+.app-shell[data-theme] .page-content .insight-metric span { color:var(--ui-muted); font-size:12px; font-weight:500; }
+
+/* --- Form controls --- */
+.app-shell[data-theme] .page-content :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),select,textarea) {
+  border:1px solid var(--ui-border); border-radius:12px; background:var(--ui-bg); color:var(--ui-text);
+}
+.app-shell[data-theme] .page-content :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),select) { min-height:42px; padding-inline:13px; }
+.app-shell[data-theme] .page-content :is(input,select,textarea):hover { border-color:color-mix(in srgb,var(--ui-accent) 35%,var(--ui-border)); }
+.app-shell[data-theme] .page-content :is(input,select,textarea):focus { border-color:var(--ui-accent); box-shadow:0 0 0 4px var(--ui-ring); outline:none; }
+.app-shell[data-theme] .page-content :is(input[type="checkbox"],input[type="radio"]) { accent-color:var(--ui-accent); width:17px; height:17px; }
+.app-shell[data-theme] .page-content :is(.practice-filters,.coding-filters,.notes-toolbar,.lld-toolbar,.whiteboard-toolbar,.whiteboard-tools) { padding:12px; border:1px solid var(--ui-border); border-radius:18px; background:var(--ui-surface); box-shadow:var(--ui-shadow); margin-bottom:18px; }
+
+/* --- Buttons --- */
+.app-shell[data-theme] .page-content .primary-button { border:0; border-radius:12px; color:#fff; background:linear-gradient(135deg,var(--ui-accent),color-mix(in srgb,var(--ui-accent) 80%,#2f7fa8)); box-shadow:0 8px 22px -8px color-mix(in srgb,var(--ui-accent) 70%,transparent); }
+.app-shell[data-theme="light"] .page-content .primary-button { color:#fff; }
+.app-shell[data-theme]:not([data-theme="light"]) .page-content .primary-button { color:#0b1210; }
+.app-shell[data-theme] .page-content .primary-button:hover { filter:brightness(1.07); transform:translateY(-1px); }
+.app-shell[data-theme] .page-content .secondary-button { min-height:38px; border-radius:11px; border:1px solid var(--ui-border); background:var(--ui-raised); color:var(--ui-text); }
+.app-shell[data-theme] .page-content .secondary-button:hover { border-color:color-mix(in srgb,var(--ui-accent) 50%,var(--ui-border)); color:var(--ui-accent); }
+
+/* --- List rows (prompts, exercises, problems, notes) --- */
+.app-shell[data-theme] .page-content :is(.practice-prompt,.coding-exercise,.lld-problem,.note-list-item) { margin-bottom:4px; border:1px solid transparent; border-radius:14px; background:transparent; }
+.app-shell[data-theme] .page-content :is(.practice-prompt,.coding-exercise,.lld-problem,.note-list-item):hover { border-color:var(--ui-border); background:var(--ui-raised); transform:none; }
+.app-shell[data-theme] .page-content :is(.practice-prompt--selected,.coding-exercise--active,.lld-problem--active,.note-list-item--active) { border-color:color-mix(in srgb,var(--ui-accent) 42%,transparent); background:color-mix(in srgb,var(--ui-accent) 10%,var(--ui-surface)); box-shadow:inset 3px 0 var(--ui-accent); }
+
+/* --- Chips --- */
+.app-shell[data-theme] .page-content :is(.practice-kind,.coding-language,.coding-difficulty,.lld-level,.problem-pattern,.lld-patterns span,.study-today,.review-count,.practice-tag) { padding:4px 11px; border-radius:999px; font-size:11px; font-weight:600; letter-spacing:.2px; }
+
+/* --- Empty states --- */
+.app-shell[data-theme] .page-content :is(.feature-empty,.review-empty,.coding-no-tests,.sync-placeholder) { padding:28px 20px; border:1.5px dashed color-mix(in srgb,var(--ui-accent) 32%,var(--ui-border)); border-radius:18px; background:color-mix(in srgb,var(--ui-accent) 5%,transparent); color:var(--ui-muted); text-align:center; }
+.app-shell[data-theme] .page-content .empty-state { border:1.5px dashed color-mix(in srgb,var(--ui-accent) 32%,var(--ui-border)); border-radius:22px; background:radial-gradient(ellipse 70% 90% at 50% 0%,color-mix(in srgb,var(--ui-accent) 10%,transparent),transparent 75%),var(--ui-surface); }
+.app-shell[data-theme] .page-content .empty-icon { width:54px; height:54px; border-radius:18px; box-shadow:0 0 0 8px color-mix(in srgb,var(--ui-accent) 8%,transparent); }
+
+/* --- Flashcards --- */
+.app-shell[data-theme] .page-content .flashcard-face { border-radius:24px; box-shadow:var(--ui-shadow); animation:card-pop .4s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes card-pop { from { opacity:0; transform:translateY(10px) scale(.985); } to { opacity:1; transform:none; } }
+
+/* --- Calendar --- */
+.app-shell[data-theme] .page-content .calendar-day { border-radius:12px; }
+.app-shell[data-theme] .page-content .calendar-day:not(.calendar-day--selected):hover { border-color:var(--ui-accent); }
+.app-shell[data-theme] .page-content .calendar-day--selected { box-shadow:0 8px 20px -8px color-mix(in srgb,var(--ui-accent) 80%,transparent); }
+
+/* --- Code & answer editors --- */
+.app-shell[data-theme] .page-content .coding-editor { border-radius:16px; }
+.app-shell[data-theme] .page-content .practice-editor textarea,
+.app-shell[data-theme] .page-content .mock-session-card textarea { border-radius:14px; }
+
+/* --- Entrance motion for every tool page --- */
+.app-shell[data-theme] .feature-page > * { animation:surface-rise .5s cubic-bezier(.2,.75,.25,1) both; }
+.app-shell[data-theme] .feature-page > *:nth-child(2) { animation-delay:60ms; }
+.app-shell[data-theme] .feature-page > *:nth-child(3) { animation-delay:110ms; }
+.app-shell[data-theme] .feature-page > *:nth-child(4) { animation-delay:160ms; }
+.app-shell[data-theme] .feature-page > *:nth-child(n+5) { animation-delay:200ms; }
+
+@media (max-width:780px) {
+  .app-shell[data-theme] .feature-page > .feature-header { border-radius:20px; }
+  .app-shell[data-theme] .feature-page > .feature-header::after { width:130px; height:130px; }
+  .app-shell[data-theme] .page-content :is(.practice-prompt-list,.practice-editor,.coding-list,.coding-workspace,.mock-setup-card,.mock-session-card,.insight-card,.insight-metric,.backup-card,.notes-list,.note-editor,.calendar-card,.calendar-detail,.interview-tracker,.db-status-card,.db-check-details,.lld-problem-list,.lld-workspace,.whiteboard-properties,.sync-panel) { border-radius:18px; }
+}
+
+/* --- Meters & bars: neutral tracks, accent fills --- */
+.app-shell[data-theme] .page-content :is(.confidence-bar-row > div,.rubric-insight-row > div,.mock-progress,.roadmap-week-meter,.progress-track--muted) { background:var(--ui-raised); border-radius:999px; box-shadow:inset 0 0 0 1px var(--ui-border); }
+.app-shell[data-theme] .page-content :is(.confidence-bar-row i,.rubric-insight-row i,.mock-progress i,.roadmap-week-meter i) { background:linear-gradient(90deg,var(--ui-accent),color-mix(in srgb,var(--ui-accent) 70%,#fff)); border-radius:999px; }
+.app-shell[data-theme] .page-content .study-week-chart i { background:linear-gradient(180deg,var(--ui-accent),color-mix(in srgb,var(--ui-accent) 55%,transparent)); border-radius:8px 8px 3px 3px; }
+
+/* Light mode: text on accent-filled calendar cells */
+.app-shell[data-theme="light"] .page-content .calendar-day--selected,
+.app-shell[data-theme="light"] .page-content .calendar-day--selected * { color:#fff; }
+
+/* --- HLD question bank --- */
+.app-shell[data-theme] .page-content .hld-bank { margin:0 0 22px; border:1px solid var(--ui-border); border-radius:22px; background:var(--ui-surface); box-shadow:var(--ui-shadow); overflow:hidden; }
+.app-shell[data-theme] .page-content .hld-bank-toggle { display:flex; align-items:center; justify-content:space-between; gap:14px; width:100%; padding:18px 22px; border:0; color:var(--ui-text); background:transparent; text-align:left; cursor:pointer; }
+.app-shell[data-theme] .page-content .hld-bank-toggle strong { display:block; font-size:16px; letter-spacing:-.3px; }
+.app-shell[data-theme] .page-content .hld-bank-toggle small { display:block; margin-top:3px; color:var(--ui-muted); font-size:12px; }
+.app-shell[data-theme] .page-content .hld-bank-chevron { display:grid; place-items:center; flex:0 0 32px; height:32px; border-radius:10px; color:var(--ui-accent); background:color-mix(in srgb,var(--ui-accent) 12%,transparent); font-size:18px; }
+.app-shell[data-theme] .page-content .hld-bank-body { display:grid; grid-template-columns:minmax(230px,300px) minmax(0,1fr); border-top:1px solid var(--ui-border); }
+.app-shell[data-theme] .page-content .hld-bank-list { display:flex; flex-direction:column; min-width:0; max-height:560px; padding:14px; border-right:1px solid var(--ui-border); background:color-mix(in srgb,var(--ui-bg) 45%,var(--ui-surface)); }
+.app-shell[data-theme] .page-content .hld-bank-filters { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px; }
+.app-shell[data-theme] .page-content .hld-bank-filters select { min-height:38px; font-size:12px; }
+.app-shell[data-theme] .page-content .hld-bank-items { flex:1; overflow:auto; }
+.app-shell[data-theme] .page-content .hld-q { display:grid; gap:3px; width:100%; margin-bottom:4px; padding:10px 12px; border:1px solid transparent; border-radius:13px; color:var(--ui-text); background:transparent; text-align:left; cursor:pointer; }
+.app-shell[data-theme] .page-content .hld-q strong { font-size:13px; font-weight:600; }
+.app-shell[data-theme] .page-content .hld-q span { color:var(--ui-muted); font-size:11px; }
+.app-shell[data-theme] .page-content .hld-q:hover { border-color:var(--ui-border); background:var(--ui-raised); }
+.app-shell[data-theme] .page-content .hld-q--active { border-color:color-mix(in srgb,var(--ui-accent) 42%,transparent); background:color-mix(in srgb,var(--ui-accent) 10%,var(--ui-surface)); box-shadow:inset 3px 0 var(--ui-accent); }
+.app-shell[data-theme] .page-content .hld-bank-detail { min-width:0; padding:clamp(18px,2.4vw,28px); }
+.app-shell[data-theme] .page-content .hld-bank-meta { display:flex; gap:8px; margin-bottom:10px; }
+.app-shell[data-theme] .page-content .hld-chip { padding:4px 11px; border-radius:999px; color:var(--ui-accent); background:color-mix(in srgb,var(--ui-accent) 13%,transparent); font-size:11px; font-weight:600; }
+.app-shell[data-theme] .page-content .hld-chip--muted { color:var(--ui-muted); background:var(--ui-raised); }
+.app-shell[data-theme] .page-content .hld-bank-detail h2 { margin:0 0 8px; font-size:24px; letter-spacing:-.6px; }
+.app-shell[data-theme] .page-content .hld-bank-prompt { margin:0 0 18px; color:var(--ui-muted); font-size:14px; line-height:1.7; }
+.app-shell[data-theme] .page-content .hld-bank-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
+.app-shell[data-theme] .page-content .hld-bank-grid > div { padding:14px 16px; border:1px solid var(--ui-border); border-radius:16px; background:var(--ui-raised); }
+.app-shell[data-theme] .page-content .hld-bank-grid h3 { margin:0 0 8px; font-size:12px; letter-spacing:.6px; text-transform:uppercase; color:var(--ui-accent); }
+.app-shell[data-theme] .page-content .hld-bank-grid ul { margin:0; padding-left:18px; }
+.app-shell[data-theme] .page-content .hld-bank-grid li { margin:5px 0; color:var(--ui-text); font-size:13px; line-height:1.55; }
+.app-shell[data-theme] .page-content .hld-bank-scale { display:grid; gap:4px; margin:0 0 14px; padding:13px 16px; border-left:3px solid var(--ui-accent); border-radius:0 14px 14px 0; background:color-mix(in srgb,var(--ui-accent) 8%,transparent); }
+.app-shell[data-theme] .page-content .hld-bank-scale strong { color:var(--ui-accent); font-size:12px; letter-spacing:.4px; text-transform:uppercase; }
+.app-shell[data-theme] .page-content .hld-bank-scale span { color:var(--ui-text); font-size:13px; line-height:1.55; }
+.app-shell[data-theme] .page-content .hld-bank-actions { display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-top:6px; }
+.app-shell[data-theme] .page-content .hld-bank-actions > span { flex:1 1 220px; color:var(--ui-muted); font-size:12px; line-height:1.5; }
+@media (max-width:900px) {
+  .app-shell[data-theme] .page-content .hld-bank-body { grid-template-columns:minmax(0,1fr); }
+  .app-shell[data-theme] .page-content .hld-bank-list { max-height:280px; border-right:0; border-bottom:1px solid var(--ui-border); }
+  .app-shell[data-theme] .page-content .hld-bank-grid { grid-template-columns:minmax(0,1fr); }
+}
+@media (max-width:780px) { .app-shell[data-theme] .page-content .hld-bank-actions .primary-button,.app-shell[data-theme] .page-content .hld-bank-actions .secondary-button { flex:1 1 100%; } }
+
+.app-shell[data-theme] .page-content .lld-toolbar { flex-wrap:wrap; gap:10px; }
+.app-shell[data-theme] .page-content .lld-toolbar input { flex:1 1 220px; min-width:0; }
+.app-shell[data-theme] .page-content .lld-toolbar select { flex:1 1 150px; min-width:0; }
+.app-shell[data-theme] .page-content .lld-toolbar > span { color:var(--ui-muted); font-size:12px; }

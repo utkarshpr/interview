@@ -124,3 +124,13 @@
 /* Card header rows are layout wrappers, not surfaces. */
 .app-shell[data-theme] .page-content .summary-card-top,
 .app-shell[data-theme] .page-content .curriculum-card-top { border:0; background:transparent; box-shadow:none; }
+
+/* ===== PWA install button & installed-app safe areas ===== */
+.install-button { display:inline-flex; align-items:center; gap:7px; min-height:38px; padding:0 13px; border:1px solid color-mix(in srgb,var(--ui-accent) 45%,transparent); border-radius:11px; color:var(--ui-accent); background:color-mix(in srgb,var(--ui-accent) 10%,transparent); font-size:11px; font-weight:600; cursor:pointer; animation:surface-rise .4s both; }
+.install-button:hover { background:color-mix(in srgb,var(--ui-accent) 18%,transparent); transform:translateY(-1px); }
+@media (max-width:580px) { .install-button span { display:none; } .install-button { width:38px; padding:0; justify-content:center; } }
+@media (display-mode:standalone) {
+  .app-shell[data-theme] .topbar { padding-top:env(safe-area-inset-top); height:calc(58px + env(safe-area-inset-top)); }
+  .app-shell[data-theme] .sidebar { padding-top:calc(20px + env(safe-area-inset-top)); }
+  body { overscroll-behavior-y:none; }
+}
