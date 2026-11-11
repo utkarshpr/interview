@@ -1,5 +1,5 @@
 // Backend Atlas service worker: offline app shell + cached static data.
-const VERSION = 'v4';
+const VERSION = 'v5';
 const SHELL = `atlas-shell-${VERSION}`;
 const ASSETS = `atlas-assets-${VERSION}`;
 const PRECACHE = ['/', '/manifest.webmanifest', '/catalog.json', '/icons/icon-192.png', '/icons/icon-512.png'];
