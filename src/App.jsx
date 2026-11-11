@@ -89,6 +89,18 @@ function getStats(section, completed) {
   return { total, done, percent: total ? Math.round((done / total) * 100) : 0 };
 }
 
+function CountUp({ value, duration = 900 }) {
+  const [shown, setShown] = useState(0);
+  useEffect(() => {
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) { setShown(value); return undefined; }
+    let frame; const start = performance.now(); const from = 0;
+    const tick = (now) => { const t = Math.min(1, (now - start) / duration); setShown(Math.round(from + (value - from) * (1 - Math.pow(1 - t, 3)))); if (t < 1) frame = requestAnimationFrame(tick); };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [value, duration]);
+  return shown;
+}
+
 function ProgressBar({ value, muted = false }) {
   return <div className={`progress-track${muted ? ' progress-track--muted' : ''}`}><span style={{ width: `${value}%` }} /></div>;
 }
@@ -731,17 +743,17 @@ function Dashboard({ catalog, profile, stats, completedSections, activeTopics, n
     <section className="summary-grid" aria-label="Learning progress summary">
       <article className="summary-card summary-card--lead">
         <div className="summary-card-top"><span className="summary-label">Overall progress</span><span className="summary-icon"><Icon name="spark" size={17}/></span></div>
-        <div className="overall-row"><div className="overall-number">{stats.percent}<span>%</span></div><div className="progress-ring" role="img" aria-label={`${stats.percent}% complete`} style={{ '--p': `${stats.percent * 3.6}deg` }}><i/></div></div>
+        <div className="overall-row"><div className="overall-number"><CountUp value={stats.percent}/><span>%</span></div><div className="progress-ring" role="img" aria-label={`${stats.percent}% complete`} style={{ '--p': `${stats.percent * 3.6}deg` }}><i/></div></div>
         <div className="summary-foot"><span>{fmt.format(stats.done)} topics completed</span><span>{fmt.format(stats.total)} total</span></div>
       </article>
       <article className="summary-card">
         <div className="summary-card-top"><span className="summary-label">Sections completed</span><span className="summary-icon"><Icon name="check" size={17}/></span></div>
-        <div className="summary-number">{completedSections}<span> / {catalog.sections.length}</span></div>
+        <div className="summary-number"><CountUp value={completedSections}/><span> / {catalog.sections.length}</span></div>
         <p className="summary-caption">Full curriculum areas</p>
       </article>
       <article className="summary-card">
         <div className="summary-card-top"><span className="summary-label">In progress</span><span className="summary-icon"><Icon name="book" size={17}/></span></div>
-        <div className="summary-number">{activeTopics}<span> topics</span></div>
+        <div className="summary-number"><CountUp value={activeTopics}/><span> topics</span></div>
         <p className="summary-caption">Started, with more to explore</p>
       </article>
     </section>
