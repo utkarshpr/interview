@@ -45,7 +45,11 @@ const themes = [
 function readStore() {
   try {
     const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if (parsed?.profiles?.length) return parsed;
+    if (parsed?.profiles?.length) {
+      // One-time: move saved profiles to the Evergreen login look (user can still change it in the theme picker).
+      parsed.profiles = parsed.profiles.map((entry) => entry.preferences?.loginLook ? entry : { ...entry, preferences: { ...(entry.preferences || {}), theme: 'sage', gradient: null, loginLook: true } });
+      return parsed;
+    }
   } catch { /* Start with an empty local profile. */ }
   return {
     activeProfileId: 'local-default',
@@ -298,7 +302,7 @@ function LearningApp({ catalog, onLogout }) {
   }, [activeSectionId]);
 
   const profile = store.profiles.find((entry) => entry.id === store.activeProfileId) || store.profiles[0];
-  const systemTheme = typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'midnight';
+  const systemTheme = 'sage';
   const theme = themes.some((entry) => entry.id === profile?.preferences?.theme) ? profile.preferences.theme : systemTheme;
   const isLight = theme === 'light';
   const gradient = profile?.preferences?.gradient || null;
@@ -580,7 +584,7 @@ function LearningApp({ catalog, onLogout }) {
             <button className="mode-toggle" onClick={toggleColorMode} aria-label={isLight ? 'Switch to dark mode' : 'Switch to light mode'} title={isLight ? 'Switch to dark mode' : 'Switch to light mode'}>{isLight ? <Moon size={16}/> : <Sun size={16}/>}</button>
             <div className="theme-menu-wrap">
               <button className="theme-trigger" aria-expanded={themeOpen} aria-label="Choose appearance theme" onClick={() => setThemeOpen((value) => !value)}><span className="theme-trigger-dot" style={{background:themes.find((entry)=>entry.id===theme)?.colors[1]}}/><span>Theme</span><ChevronDown size={14}/></button>
-              {themeOpen && <div className="theme-popover" role="dialog" aria-label="Appearance themes"><strong>Choose a theme</strong><p>Saved with this learner profile</p>{themes.map((option)=><button key={option.id} className={`theme-option${theme===option.id?' is-selected':''}`} aria-pressed={theme===option.id} onClick={()=>{updatePreferences({theme:option.id});setThemeOpen(false);}}><span className="theme-swatch" style={{'--swatch-dark':option.colors[0],'--swatch-accent':option.colors[1]}}/><span>{option.name}</span>{theme===option.id&&<Icon name="check" size={15}/>}</button>)}<div className="gradient-picker"><strong>Gradient accent</strong><p>Your own colours, saved with this profile</p><div className="gradient-presets">{gradientPresets.map((preset)=><button key={preset.name} className={`gradient-swatch${gradient?.name===preset.name?' is-selected':''}`} style={{background:`linear-gradient(135deg,${preset.from},${preset.to})`}} title={preset.name} aria-label={`${preset.name} gradient`} aria-pressed={gradient?.name===preset.name} onClick={()=>setGradient({...preset,angle:135})}/>)}<button className={`gradient-none${gradient?'':' is-selected'}`} onClick={()=>setGradient(null)}>None</button></div><div className="gradient-custom"><label><span>From</span><input type="color" aria-label="Gradient start colour" value={gradient?.from||'#6366f1'} onChange={(event)=>setGradient({from:event.target.value,name:'Custom'})}/></label><label><span>To</span><input type="color" aria-label="Gradient end colour" value={gradient?.to||'#ec4899'} onChange={(event)=>setGradient({to:event.target.value,name:'Custom'})}/></label><label className="gradient-angle"><span>Angle {gradient?.angle??135}°</span><input type="range" min="0" max="360" step="5" aria-label="Gradient angle" value={gradient?.angle??135} onChange={(event)=>setGradient({angle:Number(event.target.value),name:gradient?.name||'Custom'})}/></label></div><div className="gradient-preview" style={{background:`linear-gradient(${gradient?.angle??135}deg,${gradient?.from||'#6366f1'},${gradient?.to||'#ec4899'})`}}/></div></div>}
+              {themeOpen && <div className="theme-popover" role="dialog" aria-label="Appearance themes"><strong>Theme</strong>{themes.map((option)=><button key={option.id} className={`theme-option${theme===option.id?' is-selected':''}`} aria-pressed={theme===option.id} onClick={()=>{updatePreferences({theme:option.id});setThemeOpen(false);}}><span className="theme-swatch" style={{'--swatch-dark':option.colors[0],'--swatch-accent':option.colors[1]}}/><span>{option.name}</span>{theme===option.id&&<Icon name="check" size={15}/>}</button>)}</div>}
             </div>
             <div className="user-menu-wrap">
               <button className="top-avatar" aria-expanded={userMenu} aria-label="Account menu" onClick={() => setUserMenu((value) => !value)}>{(profile?.name || 'M').slice(0, 1).toUpperCase()}</button>

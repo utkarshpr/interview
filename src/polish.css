@@ -121,6 +121,35 @@
   .app-shell[data-theme] .topbar .guide-link { display:none; }
 }
 
+/* ===== Phone fixes: no horizontal overflow ===== */
+@media (max-width:780px) {
+  html,body { overflow-x:clip; }
+  .app-shell[data-theme] .main-area,.app-shell[data-theme] .page-content { min-width:0; max-width:100%; }
+  .app-shell[data-theme] .page-content > * { min-width:0; max-width:100%; }
+  .app-shell[data-theme] .page-content .section-intro { flex-direction:column; align-items:stretch; gap:16px; }
+  .app-shell[data-theme] .page-content .section-intro-main { width:100%; }
+  .app-shell[data-theme] .page-content .section-progress-card { width:100%; flex:0 0 auto; }
+  .app-shell[data-theme] .page-content .back-link { max-width:100%; min-width:0; }
+  .app-shell[data-theme] .page-content .back-link span,.app-shell[data-theme] .page-content .back-link b { flex:0 0 auto; }
+  .app-shell[data-theme] .page-content .back-link strong { min-width:0; flex:1 1 auto; }
+  .app-shell[data-theme] .page-content .flashcard-toolbar { flex-wrap:wrap; }
+  .app-shell[data-theme] .page-content .flashcard-toolbar > label { flex:1 1 100%; min-width:0; }
+  .app-shell[data-theme] .page-content .flashcard-toolbar select { width:100%; min-width:0; }
+  .app-shell[data-theme] .page-content .flashcard-toolbar > .secondary-button { flex:1 1 100%; }
+  .app-shell[data-theme] .page-content .section-toolbar { flex-wrap:wrap; }
+  .app-shell[data-theme] .page-content .search-field { flex:1 1 100%; min-width:0; }
+  .app-shell[data-theme] .page-content .search-field kbd { display:none; }
+  .app-shell[data-theme] .page-content .filter-tabs { max-width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+  .app-shell[data-theme] .page-content pre,.app-shell[data-theme] .page-content table { max-width:100%; overflow-x:auto; }
+  .app-shell[data-theme] .page-content img,.app-shell[data-theme] .page-content svg { max-width:100%; }
+  .app-shell[data-theme] .page-content .learning-item-wrap { padding:0 12px 12px 12px; }
+  .app-shell[data-theme] .page-content .learning-item-wrap .learning-item { margin-left:0; }
+  .app-shell[data-theme] .page-content .item-learning-tools { display:flex; flex-wrap:wrap; align-items:center; gap:8px 10px; margin:0; padding:10px 0 0 0; }
+  .app-shell[data-theme] .page-content .item-learning-tools .confidence-control { flex:1 1 100%; }
+  .app-shell[data-theme] .page-content .item-learning-tools .confidence-control select { width:100%; max-width:none; min-height:42px; font-size:16px; }
+  .app-shell[data-theme] .page-content .item-learning-tools .review-toggle,.app-shell[data-theme] .page-content .item-learning-tools button { min-height:38px; }
+}
+
 /* Card header rows are layout wrappers, not surfaces. */
 .app-shell[data-theme] .page-content .summary-card-top,
 .app-shell[data-theme] .page-content .curriculum-card-top { border:0; background:transparent; box-shadow:none; }
@@ -139,3 +168,31 @@
 .auth-loading-slow { color:#8f9eb0; font-size:11px; }
 .auth-loading-retry { min-height:36px; padding:0 18px; border:1px solid rgba(143,203,160,.4); border-radius:10px; color:#b3e4bd; background:rgba(143,203,160,.1); font-size:12px; font-weight:600; cursor:pointer; }
 .auth-loading-retry:hover { background:rgba(143,203,160,.18); }
+
+/* ===== Login-style atmosphere for the Evergreen (default) theme ===== */
+.app-shell[data-theme="sage"] { --ui-bg:#0b1018; background:#0b1018; }
+.app-shell[data-theme="sage"]:not([data-gradient]) .main-area { background:radial-gradient(ellipse at 12% 0%,rgba(73,119,105,.24),transparent 42%),radial-gradient(ellipse at 90% 95%,rgba(91,91,164,.13),transparent 40%),linear-gradient(120deg,#0c1518 0%,#0d1420 56%,#111322 100%); background-attachment:fixed; }
+.app-shell[data-theme="sage"] .sidebar { background:linear-gradient(180deg,rgba(14,22,24,.97),rgba(12,17,26,.98)); }
+.app-shell[data-theme="sage"] .topbar { background:rgba(11,16,24,.72); backdrop-filter:blur(14px); }
+.app-shell[data-theme="sage"] .page-content :is(.summary-card,.curriculum-card,.study-card,.section-progress-card,.tool-card) { border-color:rgba(175,194,185,.16); background:linear-gradient(160deg,rgba(28,37,45,.9),rgba(19,25,35,.94)); box-shadow:0 18px 60px -24px rgba(0,0,0,.5),inset 0 1px rgba(255,255,255,.025); }
+
+/* ===== Minimal theme popover ===== */
+.app-shell[data-theme] .theme-popover { width:min(220px,calc(100vw - 24px)); padding:8px; border-radius:14px; background:#10161f; backdrop-filter:none; }
+.app-shell[data-theme] .theme-popover > strong { padding:4px 8px 6px; color:var(--ui-soft); font-size:10px; font-weight:600; letter-spacing:.8px; text-transform:uppercase; }
+.app-shell[data-theme] .theme-popover > p { display:none; }
+.app-shell[data-theme] .theme-option { gap:10px; min-height:36px; padding:5px 8px; border-radius:9px; font-size:13px; }
+.app-shell[data-theme] .theme-option:hover { transform:none; }
+.app-shell[data-theme] .theme-swatch { width:20px; height:20px; border-radius:50%; }
+.app-shell[data-theme] .theme-swatch::after { inset:auto; right:0; bottom:0; width:12px; height:12px; border:0; border-radius:50% 0 0 0; }
+.app-shell[data-theme="light"] .theme-popover { background:#fff; }
+.app-shell[data-theme] .gradient-picker { margin-top:6px; padding:6px 0 0; border-top:1px solid var(--ui-border); }
+.app-shell[data-theme] .gradient-picker > summary { padding:6px 8px; color:var(--ui-muted); font-size:12px; cursor:pointer; list-style:none; }
+.app-shell[data-theme] .gradient-picker > summary::-webkit-details-marker { display:none; }
+.app-shell[data-theme] .gradient-picker > summary::after { content:" +"; color:var(--ui-soft); }
+.app-shell[data-theme] .gradient-picker[open] > summary::after { content:" –"; }
+.app-shell[data-theme] .gradient-presets { gap:6px; padding:0 4px; }
+.app-shell[data-theme] .gradient-swatch,.app-shell[data-theme] .gradient-none { height:24px; border-radius:7px; }
+.app-shell[data-theme] .gradient-custom { padding:0 4px; }
+@media (max-width:780px) {
+  .app-shell[data-theme] .theme-popover { position:fixed; top:64px; right:12px; left:auto; width:min(240px,calc(100vw - 24px)); max-height:calc(100dvh - 80px); overflow-y:auto; }
+}
