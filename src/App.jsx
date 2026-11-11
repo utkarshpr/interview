@@ -71,6 +71,21 @@ function Icon({ name, size = 18 }) {
   return <svg {...common}>{paths[name] || paths.grid}</svg>;
 }
 
+// Lets you type freely (including clearing the box) and applies the 15-600 limit on blur or Enter.
+function MinutesInput({ value, onCommit, min = 15, max = 600 }) {
+  const [draft, setDraft] = useState(String(value));
+  const [editing, setEditing] = useState(false);
+  useEffect(() => { if (!editing) setDraft(String(value)); }, [value, editing]);
+  function commit() {
+    setEditing(false);
+    const parsed = Number(draft);
+    const next = Math.max(min, Math.min(max, Number.isFinite(parsed) && draft.trim() ? Math.round(parsed) : value));
+    setDraft(String(next));
+    if (next !== value) onCommit(next);
+  }
+  return <input type="number" inputMode="numeric" min={min} max={max} step="5" value={draft} aria-label="Daily study goal in minutes" onFocus={() => setEditing(true)} onChange={(event) => setDraft(event.target.value)} onBlur={commit} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); }}/>;
+}
+
 function ItemNote({ label, value, onChange }) {
   const [open, setOpen] = useState(false);
   return <>
@@ -783,7 +798,7 @@ function Dashboard({ catalog, profile, stats, completedSections, activeTopics, n
         <div className="study-tool-heading"><div><div className="eyebrow eyebrow--muted">STUDY ROUTINE</div><h2>Daily target</h2></div><span className="study-today">🔥 {studyStreak} day streak</span></div>
         <div className="goal-summary"><strong>{todayMinutes}<small> / {preferences.dailyGoalMinutes || 90} min</small></strong><span>{todayMinutes >= (preferences.dailyGoalMinutes || 90) ? 'Daily target reached' : `${Math.max(0,(preferences.dailyGoalMinutes || 90)-todayMinutes)} minutes to go`}</span></div>
         <ProgressBar value={Math.min(100,Math.round(todayMinutes/(preferences.dailyGoalMinutes || 90)*100))} muted/>
-        <details className="goal-details"><summary>Goal & reminder settings</summary><div className="goal-settings"><label>Daily minutes<input type="number" min="15" max="600" step="15" value={preferences.dailyGoalMinutes || 90} onChange={(event) => onUpdatePreferences({dailyGoalMinutes:Math.max(15,Math.min(600,Number(event.target.value) || 15))})}/></label><label>Reminder time<input type="time" value={preferences.reminderTime || '19:00'} onChange={(event) => onUpdatePreferences({reminderTime:event.target.value})}/></label></div>
+        <details className="goal-details"><summary>Goal & reminder settings</summary><div className="goal-settings"><label>Daily minutes<MinutesInput value={preferences.dailyGoalMinutes || 90} onCommit={(minutes) => onUpdatePreferences({dailyGoalMinutes:minutes})}/></label><label>Reminder time<input type="time" value={preferences.reminderTime || '19:00'} onChange={(event) => onUpdatePreferences({reminderTime:event.target.value})}/></label></div>
         <button className="reminder-button" onClick={() => onSetReminder(!preferences.reminderEnabled)}>{preferences.reminderEnabled ? 'Turn daily reminder off' : 'Enable daily reminder'}</button>
         <p className="reminder-footnote">Reminder notifications appear while this app is open. {reminderMessage}</p></details>
       </article>
