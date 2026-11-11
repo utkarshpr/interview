@@ -143,3 +143,16 @@
 .app-shell[data-theme] .page-content .lld-toolbar input { flex:1 1 220px; min-width:0; }
 .app-shell[data-theme] .page-content .lld-toolbar select { flex:1 1 150px; min-width:0; }
 .app-shell[data-theme] .page-content .lld-toolbar > span { color:var(--ui-muted); font-size:12px; }
+
+/* --- Excalidraw whiteboard --- */
+.app-shell[data-theme] .page-content .hld-board-bar { display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-bottom:14px; padding:12px; border:1px solid var(--ui-border); border-radius:18px; background:var(--ui-surface); box-shadow:var(--ui-shadow); }
+.app-shell[data-theme] .page-content .hld-board-bar select { flex:1 1 200px; max-width:280px; }
+.app-shell[data-theme] .page-content .hld-board-bar input { flex:1 1 180px; max-width:260px; }
+.app-shell[data-theme] .page-content .hld-save { margin-left:auto; color:var(--ui-muted); font-size:12px; }
+.app-shell[data-theme] .page-content .hld-save--saving { color:var(--ui-accent); }
+.app-shell[data-theme] .page-content .hld-canvas { position:relative; height:clamp(520px,76vh,860px); overflow:hidden; border:1px solid var(--ui-border); border-radius:20px; background:var(--ui-surface); box-shadow:var(--ui-shadow); }
+.app-shell[data-theme] .page-content .hld-canvas:fullscreen { height:100vh; border-radius:0; }
+.app-shell[data-theme] .page-content .hld-canvas .excalidraw { --color-primary:var(--ui-accent); height:100%; }
+.app-shell[data-theme] .page-content .hld-canvas-loading { display:grid; place-content:center; gap:12px; height:100%; color:var(--ui-muted); font-size:13px; text-align:center; }
+.app-shell[data-theme] .page-content .hld-canvas-loading .loading-bar { width:160px; margin:0 auto; }
+@media (max-width:780px) { .app-shell[data-theme] .page-content .hld-canvas { height:calc(100dvh - 150px); min-height:460px; border-radius:16px; } .app-shell[data-theme] .page-content .hld-board-bar select,.app-shell[data-theme] .page-content .hld-board-bar input { max-width:none; flex-basis:100%; } .app-shell[data-theme] .page-content .hld-save { width:100%; margin-left:0; } }

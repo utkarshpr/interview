@@ -134,3 +134,8 @@
   .app-shell[data-theme] .sidebar { padding-top:calc(20px + env(safe-area-inset-top)); }
   body { overscroll-behavior-y:none; }
 }
+
+/* Session-check fallback shown if verification is slow */
+.auth-loading-slow { color:#8f9eb0; font-size:11px; }
+.auth-loading-retry { min-height:36px; padding:0 18px; border:1px solid rgba(143,203,160,.4); border-radius:10px; color:#b3e4bd; background:rgba(143,203,160,.1); font-size:12px; font-weight:600; cursor:pointer; }
+.auth-loading-retry:hover { background:rgba(143,203,160,.18); }

@@ -238,22 +238,106 @@ export const hldQuestions = [
     ['Document vs term partitioning','Index freshness vs batch efficiency'],
     [['service','Crawler',0,1],['queue','Doc Pipeline',1,1],['service','Indexer',2,1],['database','Index Shards',3,1],['gateway','Query Frontend',3,0],['service','Ranker',4,0],['cache','Result Cache',4,2],['client','Users',5,0]],
     [[0,1],[1,2],[2,3,'build'],[4,3,'scatter'],[4,5],[4,6],[7,4]]),
+  q('ecommerce','Design an e-commerce platform (Amazon / Flipkart)','Advanced','Commerce',
+    'Design an online marketplace with product search, carts, checkout, inventory, and order fulfillment.',
+    ['Browse and search a large catalog','Cart and checkout','Order tracking and cancellation','Seller catalog and inventory updates'],
+    ['Never oversell limited stock','Search and browse stay fast during sales','Orders survive partial failures across services'],
+    '100M products, 50M daily users, 5K orders/s on a flash sale; catalog reads are 100× writes.',
+    ['Split read-heavy catalog/search from write-heavy order paths','Inventory reservation with TTL and the saga pattern for checkout','Event-driven fulfillment with an outbox and idempotent consumers'],
+    ['Strong consistency for stock vs availability during spikes','Orchestrated vs choreographed sagas'],
+    [['client','Shopper',0,1],['gateway','API Gateway',1,1],['service','Catalog Service',2,0],['service','Cart Service',2,1],['service','Order Service',2,2],['database','Product DB',3,0],['database','Search Index',4,0],['cache','Cart Cache',3,1],['service','Inventory Service',3,2],['queue','Order Events',4,2],['service','Payment Service',5,2],['service','Shipping Service',5,3]],
+    [[0,1],[1,2,'browse'],[1,3],[1,4,'checkout'],[2,5],[2,6,'search'],[3,7],[4,8,'reserve'],[4,9,'events'],[9,10],[9,11]]),
+  q('hotel-booking','Design a hotel booking app (Airbnb / Booking.com)','Intermediate','Commerce',
+    'Design a platform where guests search properties by location and dates, then book without conflicts.',
+    ['Search by location, dates, guests, and filters','View availability and price','Book, pay, and cancel','Host calendar and pricing updates'],
+    ['No double bookings for the same dates','Search results within 300 ms','Availability stays fresh across channels'],
+    '10M listings, 1M bookings/day, 100× more searches than bookings.',
+    ['Date-range inventory model (per-night rows vs intervals)','Geo plus availability search with a search index','Booking holds, payment confirmation, and idempotent retries'],
+    ['Search freshness vs booking correctness','Pessimistic vs optimistic locking on calendars'],
+    [['client','Guest',0,1],['gateway','API Gateway',1,1],['service','Search Service',2,0],['service','Booking Service',2,2],['database','Search Index',3,0],['database','Inventory DB',3,2],['cache','Hold Store (TTL)',3,3],['service','Payment Service',4,2],['service','Notification',5,2]],
+    [[0,1],[1,2,'search'],[1,3,'book'],[2,4],[2,5,'availability'],[3,5,'decrement'],[3,6,'hold'],[3,7],[7,8]]),
+  q('food-delivery','Design a food delivery app (Zomato / Swiggy)','Advanced','Geo',
+    'Design an app connecting customers, restaurants, and couriers from order to doorstep.',
+    ['Browse restaurants and menus','Place and pay for orders','Assign and track a courier live','Restaurant order acceptance and prep status'],
+    ['Accurate ETAs and live tracking','Handle dinner-time spikes','Consistent order state across three parties'],
+    '5M orders/day, 500K couriers sending locations every 5 s ≈ 100K location writes/s.',
+    ['Order state machine and event-driven updates','Courier matching with geo index and batching','Live location pipeline and ETA estimation'],
+    ['Greedy nearest courier vs batched global matching','Polling vs push for tracking updates'],
+    [['client','Customer App',0,0],['client','Restaurant App',0,2],['client','Courier App',0,3],['gateway','API Gateway',1,1],['service','Order Service',2,1],['service','Dispatch Service',2,3],['service','Menu Service',2,0],['service','Location Service',3,3],['cache','Geo Index',4,3],['database','Order DB',3,1],['service','Payment Service',4,1],['queue','Event Bus',3,2]],
+    [[0,3],[1,3],[3,4,'order'],[3,6],[4,9],[4,10],[4,11,'events'],[11,5],[2,7,'location'],[7,8],[5,8,'nearby'],[5,2,'offer'],[11,1,'notify']]),
+  q('proximity-search','Design proximity search (nearby places)','Intermediate','Geo',
+    'Design a service that returns places near a point, with filters and ranking, like “restaurants near me”.',
+    ['Find places within a radius','Filter by category, rating, or open now','Rank results','Add and update places'],
+    ['Results in under 200 ms','Scales to hundreds of millions of places','Updates appear within minutes'],
+    '200M places, 50K queries/s, small write rate (~100/s); average result set of 20.',
+    ['Geohash vs quadtree vs S2/H3 cells and the boundary problem','Search engine with geo filters vs a dedicated geo index','Hot-area sharding and caching popular cells'],
+    ['Fixed grid simplicity vs adaptive quadtree density handling','Index update latency vs query speed'],
+    [['client','Client',0,1],['gateway','API Gateway',1,1],['service','Search Service',2,1],['cache','Geo Cell Cache',3,0],['database','Places DB',3,1],['database','Search Engine',3,2],['service','Indexer',4,1]],
+    [[0,1],[1,2],[2,3,'cell lookup'],[2,5,'filter + rank'],[2,4,'details'],[4,6,'CDC'],[6,5],[6,3]]),
+  q('stock-broker','Design a stock broker app (Zerodha / Robinhood)','Advanced','Trading',
+    'Design a retail brokerage app with live quotes, order placement, and portfolio tracking.',
+    ['Stream live prices to the app','Place, modify, and cancel orders','Pre-trade risk and margin checks','Portfolio, positions, and P&L'],
+    ['Quote fan-out to millions of users in near real time','Orders are never duplicated or lost','Positions always reconcile with the exchange'],
+    '10M users, 2M concurrent at market open; 10K orders/s; 5K symbols streaming ticks.',
+    ['Market data fan-out with conflation and WebSockets','Order lifecycle, idempotency, and exchange acknowledgements','Position and ledger updates from fills'],
+    ['Per-tick delivery vs conflated snapshots','Synchronous margin checks vs speed'],
+    [['client','Trader App',0,1],['gateway','API Gateway',1,1],['service','Order Service',2,1],['service','Risk / Margin',2,0],['service','Market Data Service',2,3],['gateway','WebSocket Gateway',1,3],['service','Exchange Gateway',3,1],['service','Exchange',4,1],['service','Portfolio Service',3,2],['database','Ledger DB',4,2],['service','Exchange Feed',3,3]],
+    [[0,1],[1,2],[2,3,'checks'],[2,6],[6,7],[6,8,'fills'],[8,9],[10,4],[4,5],[5,0,'quotes']]),
+  q('online-learning','Design an online learning platform (Udemy / Coursera)','Intermediate','Media',
+    'Design a platform where instructors publish courses and learners watch, track progress, and pay.',
+    ['Create and publish courses with video lessons','Enroll and pay','Stream lessons and resume where you left off','Quizzes, certificates, and reviews'],
+    ['Smooth global video playback','Progress is never lost','Instructor uploads processed reliably'],
+    '50M learners, 200K courses, 2M concurrent viewers at peak; progress events every few seconds.',
+    ['Video upload and transcoding pipeline with CDN delivery','Progress tracking write path and compaction','Enrollment, entitlements, and payments'],
+    ['Write-heavy progress pings vs cost','Signed URLs for entitlement checks at the CDN'],
+    [['client','Learner',0,1],['cdn','CDN',1,0],['gateway','API Gateway',1,1],['service','Course Service',2,0],['service','Enrollment Service',2,1],['service','Progress Service',2,2],['queue','Video Pipeline',3,0],['storage','Object Storage',4,0],['database','Course DB',3,1],['database','Progress Store',3,2],['service','Payment Service',4,1]],
+    [[0,2],[0,1,'video'],[2,3],[2,4],[2,5],[3,6,'upload'],[6,7],[1,7],[3,8],[4,10],[4,8],[5,9]]),
+  q('email-delivery','Design an email system (Gmail / Outlook)','Advanced','Messaging',
+    'Design an email service that sends, receives, stores, and searches mail at scale.',
+    ['Send and receive email over SMTP','Store mailboxes with labels and threads','Spam and virus filtering','Search and sync to clients'],
+    ['Durable mail storage','High-volume async delivery with retries','Low-latency mailbox reads'],
+    '1B mailboxes, 100B emails/day inbound, average 75 KB each; most mail is spam.',
+    ['Outbound queues, retries, and bounce handling','Mailbox storage layout and per-user partitioning','Spam filtering, SPF/DKIM/DMARC checks, and search indexing'],
+    ['Per-user shards vs shared message store','Index freshness vs ingest cost'],
+    [['client','Sender',0,1],['gateway','SMTP Gateway',1,1],['queue','Mail Queue',2,1],['service','Spam / Auth Filters',2,0],['service','Delivery Workers',3,1],['service','Recipient MTA',4,1],['storage','Mailbox Store',3,2],['database','Index / Metadata',4,2],['service','IMAP / Web API',2,3],['client','Mail Client',1,3],['service','Bounce Handler',3,0]],
+    [[0,1,'SMTP'],[1,2],[1,3,'scan'],[2,4,'send'],[4,5],[2,6,'store'],[6,7,'index'],[8,6],[9,8,'read'],[4,10,'bounces']]),
+  q('top-k-trending','Design Top-K trending (songs, videos, topics)','Intermediate','Gaming',
+    'Design a system that shows the top K trending items over a recent time window in near real time.',
+    ['Count views or plays','Return top K per category and window','Support hourly and daily windows'],
+    ['Seconds of staleness is acceptable','Handle millions of events per second','Cheap reads'],
+    '1M events/s, 50M distinct items, top-100 lists per region and category.',
+    ['Streaming aggregation with tumbling and sliding windows','Count-min sketch and heavy hitters vs exact counts','Hot-key splitting and merging partial top-K lists'],
+    ['Exact vs approximate counting','Precompute top-K vs compute on read'],
+    [['client','Clients',0,1],['gateway','API Gateway',1,1],['queue','Event Stream',2,1],['service','Stream Processor',3,1],['database','Window Counters',4,0],['cache','Top-K Store',4,2],['service','Query Service',2,3],['storage','Cold Archive',5,1]],
+    [[0,1,'views'],[1,2],[2,3],[3,4,'window'],[3,5,'top-k'],[6,5],[0,6,'read top-k'],[2,7,'archive']]),
 ];
 
-// Turns a compact template into whiteboard elements (same shape the canvas creates).
-const FILL = { database:'#e9f1ff', storage:'#e9f1ff', queue:'#fff4df', 'load-balancer':'#fff4df', cache:'#fff0ed', cdn:'#fff0ed', client:'#f1ecff', gateway:'#f1ecff' };
-export function buildTemplate({ t, e }, stamp = Date.now()) {
-  const W = 154, H = 70;
-  const nodes = t.map(([type, label, col, row], index) => ({ id: `tpl-${stamp}-n${index}`, type, x: 40 + col * 195, y: 50 + row * 125, w: W, h: H, label, color: FILL[type] || '#edf6ef' }));
-  const clip = (from, to) => {
-    const cx = from.x + W / 2, cy = from.y + H / 2, tx = to.x + W / 2, ty = to.y + H / 2;
-    const dx = tx - cx, dy = ty - cy;
-    const scale = Math.min(dx ? (W / 2 + 4) / Math.abs(dx) : Infinity, dy ? (H / 2 + 4) / Math.abs(dy) : Infinity);
+// Turns a compact template into Excalidraw element skeletons. The canvas module
+// feeds these to convertToExcalidrawElements, which also binds arrows to boxes.
+const FILL = { database:'#a5d8ff', storage:'#a5d8ff', queue:'#ffec99', 'load-balancer':'#ffec99', cache:'#ffc9c9', cdn:'#ffc9c9', client:'#d0bfff', gateway:'#d0bfff' };
+const SHAPE = { 'load-balancer':'diamond', cache:'ellipse', cdn:'ellipse' };
+export function templateSkeleton({ t, e }, stamp = Date.now()) {
+  const W = 176, H = 80;
+  const nodes = t.map(([type, label, col, row], index) => ({
+    type: SHAPE[type] || 'rectangle', id: `tpl-${stamp}-n${index}`,
+    x: 40 + col * 250, y: 40 + row * 150, width: W, height: H,
+    backgroundColor: FILL[type] || '#b2f2bb', strokeColor: '#1e1e1e', fillStyle: 'solid', roughness: 1,
+    roundness: { type: 3 }, label: { text: label, fontSize: 16 },
+  }));
+  // Excalidraw reads an arrow's end point from its width/height, so compute it from the box edges.
+  const edgePoint = (from, to) => {
+    const cx = from.x + W / 2, cy = from.y + H / 2;
+    const dx = to.x + W / 2 - cx, dy = to.y + H / 2 - cy;
+    const scale = Math.min(dx ? (W / 2 + 6) / Math.abs(dx) : Infinity, dy ? (H / 2 + 6) / Math.abs(dy) : Infinity);
     return { x: Math.round(cx + dx * scale), y: Math.round(cy + dy * scale) };
   };
   const arrows = e.map(([a, b, label], index) => {
-    const start = clip(nodes[a], nodes[b]), end = clip(nodes[b], nodes[a]);
-    return { id: `tpl-${stamp}-a${index}`, type: 'arrow', x: start.x, y: start.y, x2: end.x, y2: end.y, label: label || '', color: '#71867a' };
+    const start = edgePoint(nodes[a], nodes[b]), end = edgePoint(nodes[b], nodes[a]);
+    return {
+      type: 'arrow', id: `tpl-${stamp}-a${index}`, x: start.x, y: start.y, width: end.x - start.x, height: end.y - start.y,
+      start: { id: nodes[a].id }, end: { id: nodes[b].id }, strokeColor: '#1e1e1e', endArrowhead: 'arrow',
+      ...(label ? { label: { text: label, fontSize: 14 } } : {}),
+    };
   });
-  return [...arrows, ...nodes];
+  return [...nodes, ...arrows];
 }

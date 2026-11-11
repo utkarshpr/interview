@@ -11,6 +11,13 @@ import { ArrowRight, BookOpen, Download, Menu, Moon, Sun, X, CalendarDays, Chart
 const STORAGE_KEY = 'backend-atlas.progress.v1';
 const fmt = new Intl.NumberFormat('en');
 const localDay = (date = new Date()) => `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+const navGroups = [
+  { id:'practice', label:'Practice', items:[['practice','Practice answers',PencilLine],['coding','Coding practice',Code2],['mock','Mock interview',Mic2],['flashcards','Flashcards',Layers3]] },
+  { id:'design', label:'System design', items:[['hldboard','HLD whiteboard',Network],['lld','LLD practice',Repeat2]] },
+  { id:'track', label:'Track & plan', items:[['notes','Notes',StickyNote],['calendar','Calendar',CalendarDays],['insights','Insights',ChartNoAxesCombined]] },
+  { id:'data', label:'Data', items:[['dbcheck','Database status',Database],['backup','Backup & sync',Cloud]] },
+];
+const NAV_GROUPS_KEY = 'backend-atlas.navgroups';
 const themes = [
   { id:'light', name:'Light', colors:['#f4f6f9','#2f7d5b'] },
   { id:'sage', name:'Evergreen', colors:['#101b18','#8ccaa0'] },
@@ -49,6 +56,14 @@ function Icon({ name, size = 18 }) {
   return <svg {...common}>{paths[name] || paths.grid}</svg>;
 }
 
+function ItemNote({ label, value, onChange }) {
+  const [open, setOpen] = useState(false);
+  return <>
+    <button type="button" className={`note-toggle${value ? ' note-toggle--has' : ''}${open ? ' is-open' : ''}`} aria-expanded={open} onClick={() => setOpen((current) => !current)}><PencilLine size={13}/><span>{value ? 'Note' : 'Add note'}</span></button>
+    {open && <textarea className="item-note" autoFocus aria-label={`Notes for ${label}`} placeholder="Add a note, example, or answer outline…" value={value} onChange={(event) => onChange(event.target.value)} rows={3}/>}
+  </>;
+}
+
 function getStats(section, completed) {
   const total = section.topics.reduce((sum, topic) => sum + topic.items.length, 0);
   const done = section.topics.reduce((sum, topic) => sum + topic.items.filter((item) => completed.has(item.id)).length, 0);
@@ -76,6 +91,8 @@ function App() {
   return <LazyMotion features={domAnimation}><MotionConfig reducedMotion="user"><AdminGate>{(onLogout)=><LearningApp catalog={catalog} onLogout={onLogout}/>}</AdminGate></MotionConfig></LazyMotion>;
 }
 
+const withTimeout = (promise, ms, message) => Promise.race([promise, new Promise((_, reject) => setTimeout(() => reject(new Error(message)), ms))]);
+
 function AdminGate({ children }) {
   const [session,setSession]=useState(null);
   const [authLoading,setAuthLoading]=useState(true);
@@ -86,32 +103,51 @@ function AdminGate({ children }) {
 
   useEffect(()=>{
     if(!supabase){setAuthLoading(false);return;}
-    supabase.auth.getSession().then(({data,error})=>{
+    let alive=true;
+    withTimeout(supabase.auth.getSession(),8000,'Supabase session check timed out').then(({data,error})=>{
+      if(!alive)return;
       if(error)setAuthError('Could not read the current sign-in session. Please refresh and try again.');
       setSession(data?.session||null);setAuthLoading(false);
-    }).catch(()=>{setAuthError('Could not contact Supabase Auth. Check your project URL and network, then refresh.');setAuthLoading(false);});
-    const {data:{subscription}}=supabase.auth.onAuthStateChange((event,nextSession)=>{
-      setSession(nextSession);setAuthorized(false);if(event==='SIGNED_IN')setAuthError('');
+    }).catch((reason)=>{
+      if(!alive)return;
+      setAuthError(String(reason?.message||'').includes('timed out')?'Checking your session took too long. Sign in again to continue.':'Could not contact Supabase Auth. Check your project URL and network, then try again.');
+      setAuthLoading(false);
     });
-    return()=>subscription.unsubscribe();
+    const {data:{subscription}}=supabase.auth.onAuthStateChange((event,nextSession)=>{
+      // Defer out of the auth callback: calling Supabase from inside it can deadlock the client.
+      setTimeout(()=>{
+        if(!alive)return;
+        if(!nextSession){setSession(null);setAuthorized(false);return;}
+        // Token refreshes and tab re-focus events keep the same user, so keep the verified state.
+        setSession(nextSession);
+        if(event==='SIGNED_IN')setAuthError('');
+      },0);
+    });
+    return()=>{alive=false;subscription.unsubscribe();};
   },[]);
 
   useEffect(()=>{
     if(!supabase||!session?.user){setAuthorized(false);return;}
     let cancelled=false;
+    setAuthorized(false);
     setBusy(true);
     const signedInEmail=(session.user.email||'').toLowerCase();
     if(!adminEmail||signedInEmail!==adminEmail){
       supabase.auth.signOut().finally(()=>{if(!cancelled){setAuthError('This account is not the configured Backend Atlas admin.');setSession(null);setBusy(false);}});
       return()=>{cancelled=true;};
     }
-    supabase.rpc('backend_atlas_is_admin').then(({data,error})=>{
+    withTimeout(Promise.resolve(supabase.rpc('backend_atlas_is_admin')),12000,'Admin check timed out').then(({data,error})=>{
       if(cancelled)return;
       if(error||data!==true){
         setAuthorized(false);setAuthError(error?'Could not verify the Supabase admin allowlist. Check your connection and apply supabase/schema.sql.':'This account is not in the Supabase admin allowlist. Finish the admin setup in the Supabase SQL Editor.');
         supabase.auth.signOut();setSession(null);
       }else{setAuthorized(true);setAuthError('');}
       setBusy(false);
+    }).catch(()=>{
+      if(cancelled)return;
+      // Do not leave the spinner up forever: fall back to the sign-in form with a clear message.
+      setAuthorized(false);setAuthError('Verifying your session took too long. Check your connection (a paused free-tier Supabase project can take a minute to wake) and sign in again.');
+      setSession(null);setBusy(false);
     });
     return()=>{cancelled=true;};
   },[session?.user?.id]);
@@ -134,7 +170,11 @@ function AdminGate({ children }) {
   return <AdminLogin onSubmit={signIn} busy={busy} error={authError} onDevPreview={openDevPreview}/>;
 }
 
-function AuthLoading(){return <div className="auth-loading"><LoaderCircle className="spin" size={23}/><span>Verifying your secure session</span></div>;}
+function AuthLoading(){
+  const [slow,setSlow]=useState(false);
+  useEffect(()=>{const timer=setTimeout(()=>setSlow(true),6000);return()=>clearTimeout(timer);},[]);
+  return <div className="auth-loading"><LoaderCircle className="spin" size={23}/><span>Verifying your secure session</span>{slow&&<><small className="auth-loading-slow">Taking longer than usual…</small><button className="auth-loading-retry" onClick={()=>window.location.reload()}>Reload</button></>}</div>;
+}
 
 function AdminLogin({setupRequired=false,onSubmit,busy,error,onDevPreview}){
   const [email,setEmail]=useState(adminEmail||'');
@@ -172,6 +212,22 @@ function LearningApp({ catalog, onLogout }) {
   const [profileMenu, setProfileMenu] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
+  const [userMenu, setUserMenu] = useState(false);
+  const [openGroups, setOpenGroups] = useState(() => {
+    try { return { practice:true, design:true, track:false, data:false, curriculum:true, ...JSON.parse(localStorage.getItem(NAV_GROUPS_KEY)) }; } catch { return { practice:true, design:true, track:false, data:false, curriculum:true }; }
+  });
+  const toggleGroup = (id) => setOpenGroups((current) => ({ ...current, [id]: !current[id] }));
+  useEffect(() => { try { localStorage.setItem(NAV_GROUPS_KEY, JSON.stringify(openGroups)); } catch { /* ignore */ } }, [openGroups]);
+  useEffect(() => {
+    const group = navGroups.find((entry) => entry.items.some(([view]) => view === activeView));
+    if (group) setOpenGroups((current) => current[group.id] ? current : { ...current, [group.id]: true });
+  }, [activeView]);
+  useEffect(() => {
+    if (!themeOpen && !userMenu) return undefined;
+    const close = (event) => { if (!event.target.closest('.theme-menu-wrap, .user-menu-wrap')) { setThemeOpen(false); setUserMenu(false); } };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, [themeOpen, userMenu]);
   const [installEvent, setInstallEvent] = useState(null);
   useEffect(() => {
     const onPrompt = (event) => { event.preventDefault(); setInstallEvent(event); };
@@ -444,19 +500,18 @@ function LearningApp({ catalog, onLogout }) {
           <span className="brand-mark"><span /><span /><span /><span /></span>
           <span className="brand-copy"><strong>Backend Atlas</strong><small>V2 · Senior engineer workspace</small></span>
         </button>
-        <div className="side-label">Workspace</div>
-        <button className={`nav-link ${activeView === 'overview' ? 'is-active' : ''}`} onClick={openOverview}>
-          <LayoutDashboard size={17}/><span>Overview</span><span className="nav-arrow">›</span>
-        </button>
-        <button className={`nav-link roadmap-nav ${activeView === 'roadmap' ? 'is-active' : ''}`} onClick={openRoadmap}>
-          <MapIcon size={17}/><span>24-week roadmap</span><span className="nav-arrow">›</span>
-        </button>
-        <div className="side-label side-label--sections side-label--tools">Study tools</div>
-        <div className="side-feature-links">
-          {[["practice","Practice answers",PencilLine],["coding","Coding practice",Code2],["mock","Mock interview",Mic2],["flashcards","Flashcards",Layers3],["notes","Notes",StickyNote],["calendar","Interview & event calendar",CalendarDays],["dbcheck","Database status",Database],["hldboard","HLD whiteboard",Network],["lld","LLD practice",Repeat2],["insights","Progress insights",ChartNoAxesCombined],["backup","Backup & sync",Cloud]].map(([view,label,Mark]) => <button key={view} className={`nav-link feature-nav ${activeView === view ? 'is-active' : ''}`} onClick={() => openFeature(view)}><span className="feature-nav-mark"><Mark size={15}/></span><span>{label}</span></button>)}
+        <div className="side-main">
+          <button className={`nav-link ${activeView === 'overview' ? 'is-active' : ''}`} onClick={openOverview}><LayoutDashboard size={16}/><span>Overview</span></button>
+          <button className={`nav-link roadmap-nav ${activeView === 'roadmap' ? 'is-active' : ''}`} onClick={openRoadmap}><MapIcon size={16}/><span>24-week roadmap</span></button>
         </div>
-        <div className="side-label side-label--sections">Your curriculum <span>{catalog.sections.length}</span></div>
-        <nav className="section-nav" aria-label="Curriculum sections">
+        {navGroups.map((group) => <div className="nav-group" key={group.id}>
+          <button className="nav-group-toggle" aria-expanded={!!openGroups[group.id]} onClick={() => toggleGroup(group.id)}><span>{group.label}</span><ChevronDown size={13} className={openGroups[group.id] ? '' : 'is-collapsed'}/></button>
+          {openGroups[group.id] && <div className="nav-group-items">{group.items.map(([view, label, Mark]) => <button key={view} className={`nav-link feature-nav ${activeView === view ? 'is-active' : ''}`} onClick={() => openFeature(view)}><span className="feature-nav-mark"><Mark size={15}/></span><span>{label}</span></button>)}</div>}
+        </div>)}
+        <div className="nav-group nav-group--curriculum">
+          <button className="nav-group-toggle" aria-expanded={!!openGroups.curriculum} onClick={() => toggleGroup('curriculum')}><span>Curriculum</span><b>{catalog.sections.length}</b><ChevronDown size={13} className={openGroups.curriculum ? '' : 'is-collapsed'}/></button>
+        </div>
+        {openGroups.curriculum && <nav className="section-nav" aria-label="Curriculum sections">
           {catalog.sections.map((section, index) => {
             const stats = getStats(section, completed);
             return <button key={section.id} className={`nav-link nav-link--section ${activeSectionId === section.id ? 'is-active' : ''}`} onClick={() => openSection(section.id)}>
@@ -465,9 +520,8 @@ function LearningApp({ catalog, onLogout }) {
               <span className="nav-mini-progress" aria-label={`${stats.percent}% complete`}><i style={{ '--progress': `${stats.percent * 3.6}deg` }} /></span>
             </button>;
           })}
-        </nav>
+        </nav>}
         <div className="sidebar-bottom">
-          <div className="local-note"><span className="local-dot"/><span>Local copy available</span></div>
           <button className="profile-button" onClick={() => setProfileMenu((value) => !value)}>
             <span className="avatar">{(profile?.name || 'M').slice(0, 1).toUpperCase()}</span>
             <span className="profile-copy"><strong>{profile?.name || 'My learning plan'}</strong><small>Local profile</small></span>
@@ -489,15 +543,21 @@ function LearningApp({ catalog, onLogout }) {
           <button className="nav-toggle" aria-label={navOpen ? 'Close navigation' : 'Open navigation'} aria-expanded={navOpen} aria-controls="app-sidebar" onClick={() => setNavOpen((value) => !value)}>{navOpen ? <X size={20}/> : <Menu size={20}/>}</button>
           <div className="breadcrumbs"><span>Learning workspace</span><b>/</b><strong>{activeSection ? activeSection.title : ({ roadmap:'24-week roadmap', practice:'Practice answers', coding:'Coding practice', mock:'Mock interview', flashcards:'Flashcards', notes:'Notes', calendar:'Interview & event calendar', dbcheck:'Database status', hldboard:'HLD whiteboard', lld:'LLD practice', insights:'Progress insights', backup:'Backup & sync' }[activeView] || 'Overview')}</strong></div>
           <div className="top-actions">
-            <a className="guide-link" href="/senior-backend-interview-preparation.pdf" target="_blank" rel="noreferrer"><BookOpen size={15}/> Open guide PDF</a>
             {installEvent && <button className="install-button" onClick={installApp} title="Install Backend Atlas as an app"><Download size={15}/><span>Install app</span></button>}
             <button className="mode-toggle" onClick={toggleColorMode} aria-label={isLight ? 'Switch to dark mode' : 'Switch to light mode'} title={isLight ? 'Switch to dark mode' : 'Switch to light mode'}>{isLight ? <Moon size={16}/> : <Sun size={16}/>}</button>
             <div className="theme-menu-wrap">
               <button className="theme-trigger" aria-expanded={themeOpen} aria-label="Choose appearance theme" onClick={() => setThemeOpen((value) => !value)}><span className="theme-trigger-dot" style={{background:themes.find((entry)=>entry.id===theme)?.colors[1]}}/><span>Theme</span><ChevronDown size={14}/></button>
               {themeOpen && <div className="theme-popover" role="dialog" aria-label="Appearance themes"><strong>Choose a theme</strong><p>Saved with this learner profile</p>{themes.map((option)=><button key={option.id} className={`theme-option${theme===option.id?' is-selected':''}`} aria-pressed={theme===option.id} onClick={()=>{updatePreferences({theme:option.id});setThemeOpen(false);}}><span className="theme-swatch" style={{'--swatch-dark':option.colors[0],'--swatch-accent':option.colors[1]}}/><span>{option.name}</span>{theme===option.id&&<Icon name="check" size={15}/>}</button>)}</div>}
             </div>
-            <button className="top-logout" onClick={onLogout} title="Sign out"><LogOut size={15}/><span>Sign out</span></button>
-            <button className="top-avatar" onClick={() => { setProfileMode('rename'); setProfileDraft(profile.name); setProfileOpen(true); }} title="Edit learner profile">{(profile?.name || 'M').slice(0, 1).toUpperCase()}</button>
+            <div className="user-menu-wrap">
+              <button className="top-avatar" aria-expanded={userMenu} aria-label="Account menu" onClick={() => setUserMenu((value) => !value)}>{(profile?.name || 'M').slice(0, 1).toUpperCase()}</button>
+              {userMenu && <div className="user-popover" role="menu">
+                <div className="user-popover-head"><strong>{profile?.name || 'My learning plan'}</strong><small>Local profile</small></div>
+                <button role="menuitem" onClick={() => { setProfileMode('rename'); setProfileDraft(profile.name); setProfileOpen(true); setUserMenu(false); }}><Icon name="user" size={15}/> Edit profile</button>
+                <a role="menuitem" href="/senior-backend-interview-preparation.pdf" target="_blank" rel="noreferrer" onClick={() => setUserMenu(false)}><BookOpen size={15}/> Open guide PDF</a>
+                <button role="menuitem" onClick={() => { setUserMenu(false); onLogout(); }}><LogOut size={15}/> Sign out</button>
+              </div>}
+            </div>
           </div>
         </header>
 
@@ -525,7 +585,7 @@ function LearningApp({ catalog, onLogout }) {
         : activeView === 'notes' ? <NotesView notes={profile?.notes || []} onChange={(notes) => updateProfileData('notes',notes)} />
         : activeView === 'calendar' ? <CalendarView events={profile?.events || []} onChange={(events) => updateProfileData('events',events)} />
         : activeView === 'dbcheck' ? <DatabaseCheckView />
-        : activeView === 'hldboard' ? <HLDWhiteboard boards={profile?.designBoards || []} onChange={(boards) => updateProfileData('designBoards',boards)} />
+        : activeView === 'hldboard' ? <HLDWhiteboard theme={isLight ? 'light' : 'dark'} boards={profile?.designBoards || []} onChange={(boards) => updateProfileData('designBoards',boards)} />
         : activeView === 'lld' ? <LLDStudio drafts={profile?.lldDrafts || {}} onChange={(drafts) => updateProfileData('lldDrafts',drafts)} />
         : activeView === 'insights' ? <InsightsView catalog={catalog} itemData={profile?.itemData || {}} completed={completed} sessions={profile?.sessions || []} mockHistory={profile?.mockHistory || []} reviewItems={reviewItems} personalNotes={profile?.notes || []} />
         : activeView === 'backup' ? <BackupView profile={profile} onImport={importProfile} /> : <Dashboard
@@ -668,30 +728,6 @@ function Dashboard({ catalog, profile, stats, completedSections, activeTopics, n
       </article>
     </section>
 
-    <section className="study-tools-grid" aria-label="Study tools">
-      <article className="study-tool-card study-session-card">
-        <div className="study-tool-heading"><div><div className="eyebrow eyebrow--muted">FOCUS TIME</div><h2>Study session</h2></div><span className="study-today">Today · {todayMinutes} min</span></div>
-        <div className="study-clock">{String(Math.floor(elapsed / 3600)).padStart(2, '0')}:{String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0')}:{String(elapsed % 60).padStart(2, '0')}</div>
-        <p>{activeSession ? 'Session in progress. Your time is saved locally.' : `${Math.floor(totalMinutes / 60)}h ${totalMinutes % 60}m studied in total`}</p>
-        <button className={`primary-button session-button ${activeSession ? 'session-button--stop' : ''}`} onClick={activeSession ? onFinishSession : onStartSession}>{activeSession ? 'Finish session' : 'Start study session'}</button>
-        {recentSessions.length > 0 && <div className="recent-sessions"><strong>Recent sessions</strong>{recentSessions.slice(0, 3).map((session, index) => <span key={`${session.endedAt}-${index}`}>{session.date} <b>{session.minutes} min</b></span>)}</div>}
-      </article>
-      <article className="study-tool-card review-card">
-        <div className="study-tool-heading"><div><div className="eyebrow eyebrow--muted">SPACED REVIEW</div><h2>Review reminders</h2></div><span className="review-count">{reviewItems.length} due</span></div>
-        <p className="review-intro">Mark uncertain topics, then use spaced repetition to strengthen recall.</p><button className="flashcard-dashboard-link" onClick={onOpenFlashcards}>Open flashcard review →</button>
-        {reviewItems.length ? <div className="review-list">{reviewItems.slice(0, 4).map((item) => <button key={item.id} onClick={() => onReviewItem(item)}><span><strong>{item.text}</strong><small>{item.topic.title} · {item.section.title}</small></span><Icon name="arrow" size={15}/></button>)}</div> : <div className="review-empty"><span className="review-check"><Icon name="check" size={14}/></span><span>No reviews due. Mark an item “Need review” while studying.</span></div>}
-      </article>
-      <article className="study-tool-card routine-card">
-        <div className="study-tool-heading"><div><div className="eyebrow eyebrow--muted">STUDY ROUTINE</div><h2>Daily target</h2></div><span className="study-today">🔥 {studyStreak} day streak</span></div>
-        <div className="goal-summary"><strong>{todayMinutes}<small> / {preferences.dailyGoalMinutes || 90} min</small></strong><span>{todayMinutes >= (preferences.dailyGoalMinutes || 90) ? 'Daily target reached' : `${Math.max(0,(preferences.dailyGoalMinutes || 90)-todayMinutes)} minutes to go`}</span></div>
-        <ProgressBar value={Math.min(100,Math.round(todayMinutes/(preferences.dailyGoalMinutes || 90)*100))} muted/>
-        <div className="goal-settings"><label>Daily minutes<input type="number" min="15" max="600" step="15" value={preferences.dailyGoalMinutes || 90} onChange={(event) => onUpdatePreferences({dailyGoalMinutes:Math.max(15,Math.min(600,Number(event.target.value) || 15))})}/></label><label>Reminder time<input type="time" value={preferences.reminderTime || '19:00'} onChange={(event) => onUpdatePreferences({reminderTime:event.target.value})}/></label></div>
-        <button className="reminder-button" onClick={() => onSetReminder(!preferences.reminderEnabled)}>{preferences.reminderEnabled ? 'Turn daily reminder off' : 'Enable daily reminder'}</button>
-        <p className="reminder-footnote">Reminder notifications appear while this app is open. {reminderMessage}</p>
-      </article>
-    </section>
-    <section className="confidence-legend"><strong>Learning loop</strong><span>Capture notes and confidence on each item, flag uncertain areas for review, and track focused study time here.</span></section>
-
     <section className="curriculum-heading">
       <div><div className="eyebrow eyebrow--muted">THE CURRICULUM</div><h2>Your backend engineering map</h2><p>Explore a section, mark topics as you learn, and pick up where you left off.</p></div>
       <span className="curriculum-total"><Icon name="check" size={15}/>{fmt.format(stats.done)} / {fmt.format(stats.total)} done</span>
@@ -711,6 +747,30 @@ function Dashboard({ catalog, profile, stats, completedSections, activeTopics, n
         </button>;
       })}
     </section>
+    <section className="today-heading"><div className="eyebrow eyebrow--muted">TODAY</div><h2>Study tools</h2></section>
+    <section className="study-tools-grid" aria-label="Study tools">
+      <article className="study-tool-card study-session-card">
+        <div className="study-tool-heading"><div><div className="eyebrow eyebrow--muted">FOCUS TIME</div><h2>Study session</h2></div><span className="study-today">Today · {todayMinutes} min</span></div>
+        <div className="study-clock">{String(Math.floor(elapsed / 3600)).padStart(2, '0')}:{String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0')}:{String(elapsed % 60).padStart(2, '0')}</div>
+        <p>{activeSession ? 'Session in progress. Your time is saved locally.' : `${Math.floor(totalMinutes / 60)}h ${totalMinutes % 60}m studied in total`}</p>
+        <button className={`primary-button session-button ${activeSession ? 'session-button--stop' : ''}`} onClick={activeSession ? onFinishSession : onStartSession}>{activeSession ? 'Finish session' : 'Start study session'}</button>
+        {recentSessions.length > 0 && <div className="recent-sessions"><strong>Recent sessions</strong>{recentSessions.slice(0, 3).map((session, index) => <span key={`${session.endedAt}-${index}`}>{session.date} <b>{session.minutes} min</b></span>)}</div>}
+      </article>
+      <article className="study-tool-card review-card">
+        <div className="study-tool-heading"><div><div className="eyebrow eyebrow--muted">SPACED REVIEW</div><h2>Review reminders</h2></div><span className="review-count">{reviewItems.length} due</span></div>
+        <p className="review-intro">Mark uncertain topics, then use spaced repetition to strengthen recall.</p><button className="flashcard-dashboard-link" onClick={onOpenFlashcards}>Open flashcard review →</button>
+        {reviewItems.length ? <div className="review-list">{reviewItems.slice(0, 4).map((item) => <button key={item.id} onClick={() => onReviewItem(item)}><span><strong>{item.text}</strong><small>{item.topic.title} · {item.section.title}</small></span><Icon name="arrow" size={15}/></button>)}</div> : <div className="review-empty"><span className="review-check"><Icon name="check" size={14}/></span><span>No reviews due. Mark an item “Need review” while studying.</span></div>}
+      </article>
+      <article className="study-tool-card routine-card">
+        <div className="study-tool-heading"><div><div className="eyebrow eyebrow--muted">STUDY ROUTINE</div><h2>Daily target</h2></div><span className="study-today">🔥 {studyStreak} day streak</span></div>
+        <div className="goal-summary"><strong>{todayMinutes}<small> / {preferences.dailyGoalMinutes || 90} min</small></strong><span>{todayMinutes >= (preferences.dailyGoalMinutes || 90) ? 'Daily target reached' : `${Math.max(0,(preferences.dailyGoalMinutes || 90)-todayMinutes)} minutes to go`}</span></div>
+        <ProgressBar value={Math.min(100,Math.round(todayMinutes/(preferences.dailyGoalMinutes || 90)*100))} muted/>
+        <details className="goal-details"><summary>Goal & reminder settings</summary><div className="goal-settings"><label>Daily minutes<input type="number" min="15" max="600" step="15" value={preferences.dailyGoalMinutes || 90} onChange={(event) => onUpdatePreferences({dailyGoalMinutes:Math.max(15,Math.min(600,Number(event.target.value) || 15))})}/></label><label>Reminder time<input type="time" value={preferences.reminderTime || '19:00'} onChange={(event) => onUpdatePreferences({reminderTime:event.target.value})}/></label></div>
+        <button className="reminder-button" onClick={() => onSetReminder(!preferences.reminderEnabled)}>{preferences.reminderEnabled ? 'Turn daily reminder off' : 'Enable daily reminder'}</button>
+        <p className="reminder-footnote">Reminder notifications appear while this app is open. {reminderMessage}</p></details>
+      </article>
+    </section>
+    
     <footer className="dashboard-footer"><span>Welcome, {profile?.name || 'learner'}.</span><span>Your progress stays on this device.</span></footer>
   </div>;
 }
@@ -788,8 +848,8 @@ function SectionView({ section, catalog, completed, onToggle, itemData, onUpdate
                 <div className="item-learning-tools">
                   <label className="confidence-control"><span>Confidence</span><select aria-label={`Confidence for ${item.text}`} value={details.confidence || ''} onChange={(event) => onUpdateItem(item.id, { confidence: event.target.value })}><option value="">Rate confidence</option><option value="learning">Learning</option><option value="practicing">Practicing</option><option value="confident">Confident</option></select></label>
                   <button className={`review-toggle ${details.reviewAt ? 'review-toggle--active' : ''}`} onClick={() => onUpdateItem(item.id, { reviewAt: details.reviewAt ? null : Date.now() + 3 * 24 * 60 * 60 * 1000 })}>{details.reviewAt ? (isDue ? 'Review due · clear' : 'Review scheduled · clear') : 'Need review · in 3 days'}</button>
+                  <ItemNote label={item.text} value={details.note || ''} onChange={(note) => onUpdateItem(item.id, { note })}/>
                 </div>
-                <textarea className="item-note" aria-label={`Notes for ${item.text}`} placeholder="Add a note, example, or answer outline…" value={details.note || ''} onChange={(event) => onUpdateItem(item.id, { note: event.target.value })} rows={1}/>
               </div>;
             }) : <div className="empty-unit">This section is a reference overview. Its subtopics are tracked below.</div>}
           </div>}

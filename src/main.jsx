@@ -6,6 +6,10 @@ import './type-scale.css';
 import './light-theme.css';
 import './polish.css';
 import './tools.css';
+import './calm.css';
+
+// Serve Excalidraw's fonts from this origin so the whiteboard works offline and makes no CDN requests.
+window.EXCALIDRAW_ASSET_PATH = '/excalidraw-assets/';
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
