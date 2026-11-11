@@ -1,0 +1,270 @@
+/* Raises very small legacy type sizes (7-10px) to readable ones. Later and
+   less specific than the V2 layer, so V2 sizes still win. */
+.brand-copy small { font-size:12px; }
+.side-label { font-size:11px; }
+.side-label--sections span { font-size:12px; }
+.roadmap-nav-mark { font-size:10.5px; }
+.feature-nav > span:nth-child(2) { font-size:12px; }
+.section-number { font-size:12px; }
+.nav-section-copy > span { font-size:12px; }
+.nav-section-copy small { font-size:11px; }
+.local-note { font-size:12px; }
+.profile-copy strong { font-size:12px; }
+.profile-copy small { font-size:11px; }
+.popover-heading { font-size:11px; }
+.avatar--small { font-size:12px; }
+.breadcrumbs { font-size:12px; }
+.guide-link { font-size:12px; }
+.eyebrow { font-size:11px; }
+.summary-label { font-size:12px; }
+.summary-foot { font-size:11px; }
+.summary-caption { font-size:12px; }
+.curriculum-total { font-size:11px; }
+.curriculum-card p { font-size:11.5px; }
+.card-progress-label { font-size:11px; }
+.card-progress-label strong { font-size:11px; }
+.card-bottom { font-size:11px; }
+.dashboard-footer { font-size:11px; }
+.goal-summary { font-size:10.5px; }
+.goal-summary strong small { font-size:12px; }
+.goal-settings label { font-size:10.5px; }
+.goal-settings input { font-size:11px; }
+.reminder-button { font-size:10.5px; }
+.reminder-footnote { font-size:10px; }
+.study-today,.review-count { font-size:11px; }
+.study-session-card > p,.review-intro { font-size:12px; }
+.session-button { font-size:12px; }
+.recent-sessions { font-size:11px; }
+.recent-sessions strong { font-size:11px; }
+.review-list button strong { font-size:12px; }
+.review-list button small { font-size:10.5px; }
+.review-empty { font-size:11px; }
+.confidence-legend { font-size:11px; }
+.roadmap-overall > span { font-size:10.5px; }
+.adaptive-recommendation p { font-size:10.5px; }
+.adaptive-recommendation .primary-button { font-size:11px; }
+.roadmap-note { font-size:11px; }
+.roadmap-phase-labels { font-size:10.5px; }
+.roadmap-week-copy em { font-size:10px; }
+.roadmap-week-number { font-size:12px; }
+.roadmap-week-copy strong { font-size:12px; }
+.roadmap-week-copy small { font-size:10.5px; }
+.roadmap-week-count { font-size:11px; }
+.roadmap-week-content > p { font-size:11px; }
+.roadmap-topic-link strong { font-size:11px; }
+.roadmap-topic-link small { font-size:10.5px; }
+.roadmap-topic-progress { font-size:10.5px; }
+.practice-filters input,.practice-filters select { font-size:11px; }
+.practice-list-heading { font-size:11px; }
+.practice-prompt-title { font-size:11px; }
+.practice-prompt small { font-size:10px; }
+.practice-tag { font-size:10px; }
+.practice-list-more { font-size:11px; }
+.practice-topic-label { font-size:11px; }
+.practice-kind { font-size:10.5px; }
+.practice-guidance { font-size:11px; }
+.practice-editor label,.mock-session-card > label,.mock-setup-card > label { font-size:11px; }
+.practice-editor textarea,.mock-session-card textarea { font-size:12px; }
+.practice-save-note { font-size:10.5px; }
+.coding-filters input,.coding-filters select { font-size:11px; }
+.coding-filters > span { font-size:10.5px; }
+.coding-list-title { font-size:11px; }
+.coding-exercise > span { font-size:11px; }
+.coding-exercise small { font-size:10px; }
+.coding-exercise b { font-size:10px; }
+.coding-list > p { font-size:10.5px; }
+.coding-breadcrumb { font-size:10.5px; }
+.coding-language { font-size:10.5px; }
+.coding-difficulty { font-size:10.5px; }
+.coding-done-mark { font-size:10.5px; }
+.coding-description { font-size:11px; }
+.coding-source-link,.a2z-sheet-link a { font-size:10.5px; }
+.a2z-sheet-link span { font-size:10.5px; }
+.coding-editor-heading label { font-size:11px; }
+.coding-editor-heading select { font-size:10.5px; }
+.coding-editor-heading .secondary-button,.coding-tests-heading .secondary-button { font-size:10.5px; }
+.coding-editor { font-size:12px; }
+.coding-tests-heading p { font-size:10.5px; }
+.run-cases-button { font-size:10.5px; }
+.runner-status { font-size:10.5px; }
+.runner-error { font-size:10.5px; }
+.coding-test-title strong { font-size:10.5px; }
+.case-remove { font-size:10px; }
+.coding-test-case > label:not(.case-passed) { font-size:10.5px; }
+.coding-test-case textarea { font-size:10.5px; }
+.case-passed { font-size:10.5px; }
+.coding-no-tests { font-size:10.5px; }
+.coding-run-note { font-size:10.5px; }
+.feature-empty { font-size:12px; }
+.section-pick-grid label { font-size:11px; }
+.mock-setup-options label { font-size:11px; }
+.mock-setup-options select,.mock-self-rating select { font-size:11px; }
+.mock-setup-card > p { font-size:11px; }
+.mock-history button strong { font-size:11px; }
+.mock-history button small,.mock-history button b { font-size:10.5px; }
+.mock-session-top { font-size:11px; }
+.mock-answer-label { font-size:11px; }
+.mock-self-rating { font-size:11px; }
+.answer-rubric-heading p { font-size:10.5px; }
+.rubric-control strong { font-size:11px; }
+.rubric-control small { font-size:10.5px; }
+.rubric-control select { font-size:10.5px; }
+.rubric-summary-heading { font-size:10.5px; }
+.rubric-summary-grid span { font-size:10px; }
+.rubric-summary-grid b { font-size:11px; }
+.interview-score-banner { font-size:11px; }
+.interview-score-banner strong small { font-size:11px; }
+.rubric-insight-row { font-size:10.5px; }
+.rubric-insight-row b { font-size:10.5px; }
+.topic-learning-label { font-size:10px; }
+.topic-learning-card > p { font-size:11px; }
+.topic-example strong,.topic-resources > strong { font-size:10.5px; }
+.topic-example span { font-size:10.5px; }
+.topic-resources a { font-size:10.5px; }
+.prerequisite-panel-title strong { font-size:11px; }
+.prerequisite-panel-title > span { font-size:10.5px; }
+.prerequisite-links strong { font-size:10.5px; }
+.prerequisite-links small { font-size:10px; }
+.prerequisite-links b { font-size:10px; }
+.review-answer-card > span { font-size:10.5px; }
+.review-answer-card p { font-size:11px; }
+.insight-metric span { font-size:10.5px; }
+.insight-card > p { font-size:10.5px; }
+.confidence-bar-row { font-size:10.5px; }
+.confidence-bar-row b { font-size:10.5px; }
+.study-week-chart > div { font-size:10px; }
+.study-week-chart small { font-size:10.5px; }
+.weak-topic-row strong { font-size:11px; }
+.weak-topic-row small,.weak-topic-row > span:last-child { font-size:10.5px; }
+.backup-card-icon { font-size:11px; }
+.backup-card p { font-size:11px; }
+.backup-card .primary-button,.backup-card .secondary-button { font-size:11px; }
+.backup-message { font-size:11px; }
+.sync-placeholder { font-size:11px; }
+.sync-panel-heading p,.sync-setup p,.sync-choice p,.sync-conflict p { font-size:11px; }
+.sync-setup { font-size:11px; }
+.sync-signin label { font-size:11px; }
+.sync-signin .primary-button,.sync-actions .primary-button,.sync-choice .primary-button,.sync-choice .secondary-button,.sync-conflict .primary-button,.sync-conflict .secondary-button { font-size:11px; }
+.sync-message { font-size:11px; }
+.sync-account,.sync-actions { font-size:11px; }
+.sync-account .secondary-button { font-size:10.5px; }
+.sync-conflict strong { font-size:12px; }
+.db-status-card p,.db-check-details li,.db-check-details > p { font-size:12px; }
+.db-status-meta { font-size:10.5px; }
+.db-status-card .primary-button { font-size:11px; }
+.notes-toolbar input { font-size:11px; }
+.notes-toolbar .primary-button { font-size:11px; }
+.note-list-item strong { font-size:11px; }
+.note-list-item span { font-size:10.5px; }
+.note-list-item small { font-size:10px; }
+.notes-empty { font-size:11px; }
+.note-pin { font-size:10.5px; }
+.note-tags-input { font-size:10.5px; }
+.note-body-input { font-size:11px; }
+.note-save-row { font-size:10.5px; }
+.note-save-row .primary-button,.note-editor-actions .secondary-button { font-size:10.5px; }
+.calendar-today { font-size:10.5px; }
+.calendar-weekdays span { font-size:10.5px; }
+.calendar-day { font-size:11px; }
+.calendar-actions button,.calendar-detail-head .secondary-button,.interview-tracker-header .primary-button { font-size:10.5px; }
+.calendar-event-type { font-size:10px; }
+.calendar-event-heading { font-size:11px; }
+.calendar-event-heading small { font-size:10px; }
+.calendar-event-card p { font-size:10.5px; }
+.calendar-event-controls select,.interview-row select { font-size:10px; }
+.calendar-event-controls button,.interview-row button { font-size:10px; }
+.calendar-empty { font-size:11px; }
+.interview-row { font-size:10.5px; }
+.interview-row--head { font-size:10px; }
+.interview-row small { font-size:10px; }
+.calendar-form label { font-size:10.5px; }
+.calendar-form input,.calendar-form select,.calendar-form textarea { font-size:11px; }
+.calendar-form > .primary-button { font-size:11px; }
+.flashcard-toolbar > label { font-size:10.5px; }
+.flashcard-toolbar select { font-size:11px; }
+.flashcard-toolbar > .secondary-button { font-size:10.5px; }
+.flashcard-counts { font-size:10.5px; }
+.flashcard-session-top { font-size:10.5px; }
+.flashcard-side-label { font-size:10.5px; }
+.flashcard-face small { font-size:10.5px; }
+.flashcard-reveal { font-size:11px; }
+.flashcard-ratings { font-size:10.5px; }
+.flashcard-ratings button { font-size:11px; }
+.flashcard-ratings button small { font-size:10px; }
+.flashcard-empty p { font-size:11px; }
+.flashcard-empty .primary-button,.flashcard-create-form .primary-button { font-size:11px; }
+.flashcard-dashboard-link { font-size:10.5px; }
+.problem-pattern,.problem-coach > p { font-size:10.5px; }
+.problem-coach details { font-size:10.5px; }
+.whiteboard-toolbar input,.whiteboard-toolbar select { font-size:10.5px; }
+.whiteboard-toolbar .secondary-button { font-size:10.5px; }
+.whiteboard-tool { font-size:10.5px; }
+.whiteboard-tools > span { font-size:10px; }
+.whiteboard-properties label { font-size:10.5px; }
+.whiteboard-properties input,.whiteboard-properties select { font-size:10.5px; }
+.whiteboard-properties > p { font-size:10.5px; }
+.whiteboard-delete { font-size:10.5px; }
+.whiteboard-legend { font-size:10px; }
+.whiteboard-legend strong { font-size:10.5px; }
+.whiteboard-save-note { font-size:10px; }
+.lld-toolbar select { font-size:10.5px; }
+.lld-toolbar span { font-size:10.5px; }
+.lld-problem strong { font-size:10.5px; }
+.lld-problem span,.lld-problem small { font-size:10px; }
+.lld-level { font-size:10px; }
+.lld-problem-heading .secondary-button { font-size:10.5px; }
+.lld-prompt { font-size:11px; }
+.lld-requirements h3 { font-size:11px; }
+.lld-requirements ul,.lld-followups ul { font-size:10.5px; }
+.lld-patterns span { font-size:10px; }
+.lld-editor-field strong { font-size:10.5px; }
+.lld-editor-field small { font-size:10px; }
+.lld-save-row { font-size:10.5px; }
+.lld-save-row .primary-button { font-size:10.5px; }
+.lld-followups { font-size:10.5px; }
+.confidence-control { font-size:10.5px; }
+.confidence-control select { font-size:10.5px; }
+.review-toggle { font-size:10.5px; }
+.item-note { font-size:11px; }
+.back-link { font-size:11px; }
+.back-link strong { font-size:11px; }
+.section-progress-card .summary-foot { font-size:10.5px; }
+.search-field input { font-size:12px; }
+.search-field kbd { font-size:10.5px; }
+.filter-tabs button { font-size:11px; }
+.result-count { font-size:11px; }
+.unit-index { font-size:11px; }
+.unit-copy small { font-size:11px; }
+.unit-count { font-size:11px; }
+.unit-description { font-size:12px; }
+.learning-item-text { font-size:12px; }
+.item-kind { font-size:10.5px; }
+.empty-unit { font-size:12px; }
+.text-button { font-size:12px; }
+.section-end-card strong { font-size:12px; }
+.section-end-card p { font-size:11px; }
+.profile-modal label { font-size:12px; }
+.whiteboard-toolbar .whiteboard-delete { font-size:11px; }
+.whiteboard-toolbar .secondary-button { font-size:11px; }
+.whiteboard-toolbar select { font-size:12px; }
+.whiteboard-toolbar input { font-size:12px; }
+.whiteboard-tool { font-size:11px; }
+.whiteboard-tools > span { font-size:11px; }
+.whiteboard-zoom { font-size:11px; }
+.theme-trigger { font-size:12px; }
+.theme-popover > p { font-size:11px; }
+.theme-option { font-size:12px; }
+.login-brand small { font-size:10.5px; }
+.login-kicker { font-size:11px; }
+.login-highlights i { font-size:10.5px; }
+.login-story-foot { font-size:11px; }
+.login-form > label { font-size:12px; }
+.login-error { font-size:11px; }
+.login-secure-note { font-size:11px; }
+.login-setup-steps { font-size:11px; }
+.login-setup-steps pre { font-size:11px; }
+.login-warning { font-size:11px; }
+.login-footer { font-size:11px; }
+.top-logout { font-size:11px; }
+.dev-preview-button { font-size:12px; }
+.dev-preview-button small { font-size:10.5px; }

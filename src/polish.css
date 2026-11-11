@@ -1,0 +1,126 @@
+/* ===== Light theme tokens & hand-tuned extras ===== */
+.app-shell[data-theme="light"] {
+  --ui-bg:#f4f6fa; --ui-surface:#ffffff; --ui-raised:#f0f3f8; --ui-border:#e2e7ef;
+  --ui-text:#162033; --ui-muted:#5a6679; --ui-soft:#7a8597;
+  --ui-accent:#2a7d5a; --ui-accent-strong:#1c6044;
+  color-scheme:light;
+}
+.app-shell[data-theme="light"] .page-content .whiteboard-canvas-wrap,
+.app-shell[data-theme="light"] .feature-page .whiteboard-canvas-wrap { background:#fff; }
+.app-shell[data-theme="light"] .topbar { background:rgba(255,255,255,.78); border-color:rgba(22,32,51,.08); }
+.app-shell[data-theme="light"] .page-content [class*="-card"],
+.app-shell[data-theme="light"] .page-content [class*="-panel"],
+.app-shell[data-theme="light"] .page-content [class*="-workspace"] { box-shadow:0 1px 2px rgba(22,32,51,.04),0 8px 24px rgba(22,32,51,.05); }
+.app-shell[data-theme="light"] .page-content .summary-card--lead { color:#fff; background:linear-gradient(135deg,#2a7d5a,#1f5f6f 90%); border-color:transparent; }
+.app-shell[data-theme="light"] .page-content .summary-card--lead .summary-label,
+.app-shell[data-theme="light"] .page-content .summary-card--lead .summary-foot,
+.app-shell[data-theme="light"] .page-content .summary-card--lead .overall-number,
+.app-shell[data-theme="light"] .page-content .summary-card--lead .overall-number span { color:rgba(255,255,255,.92); }
+.app-shell[data-theme="light"] .page-content .summary-card--lead .progress-track { background:rgba(255,255,255,.28); }
+.app-shell[data-theme="light"] .page-content .summary-card--lead .progress-track > span { background:#fff; }
+.app-shell[data-theme="light"] .page-content .summary-card--lead .summary-icon { color:#fff; background:rgba(255,255,255,.18); }
+.app-shell[data-theme="light"] .theme-popover,
+.app-shell[data-theme="light"] .profile-popover { box-shadow:0 20px 60px rgba(22,32,51,.18); }
+
+/* ===== Toolbar buttons (theme toggle, nav toggle) ===== */
+.nav-toggle,.mode-toggle { width:38px; height:38px; display:inline-grid; place-items:center; padding:0; border:1px solid var(--ui-border,#2a3441); border-radius:11px; color:var(--ui-muted,#aab7c7); background:var(--ui-surface,#171e28); cursor:pointer; transition:transform .2s,border-color .2s,color .2s,background .2s; }
+.nav-toggle:hover,.mode-toggle:hover { color:var(--ui-accent); border-color:color-mix(in srgb,var(--ui-accent) 45%,var(--ui-border,#2a3441)); transform:translateY(-1px); }
+.mode-toggle svg { transition:transform .45s cubic-bezier(.2,.8,.2,1); }
+.mode-toggle:hover svg { transform:rotate(25deg) scale(1.08); }
+.nav-toggle,.nav-backdrop { display:none; }
+
+/* ===== Modern surfaces & motion (all themes) ===== */
+.app-shell { scroll-behavior:smooth; transition:background-color .35s ease,color .35s ease; }
+.app-shell[data-theme] * { transition-property:background-color,border-color,color,box-shadow,transform,opacity; transition-duration:.22s; transition-timing-function:ease; }
+.app-shell[data-theme] .progress-track > span,.app-shell[data-theme] .roadmap-week-meter i,.app-shell[data-theme] .confidence-bar-row i { transition:width .7s cubic-bezier(.2,.8,.2,1); }
+.app-shell[data-theme] .topbar { position:sticky; top:0; z-index:40; backdrop-filter:blur(18px) saturate(1.4); }
+.app-shell[data-theme] .page-content [class*="-card"],
+.app-shell[data-theme] .page-content [class*="-panel"],
+.app-shell[data-theme] .page-content [class*="-workspace"],
+.app-shell[data-theme] .page-content .roadmap-week,
+.app-shell[data-theme] .page-content .unit-card { border-radius:16px; }
+.app-shell[data-theme] .page-content .curriculum-card { position:relative; overflow:hidden; }
+.app-shell[data-theme] .page-content .curriculum-card::before { content:""; position:absolute; inset:0 0 auto 0; height:3px; background:linear-gradient(90deg,var(--ui-accent),transparent 80%); opacity:0; transition:opacity .3s; }
+.app-shell[data-theme] .page-content .curriculum-card:hover::before { opacity:1; }
+.app-shell[data-theme] .page-content .curriculum-card:hover .card-open { transform:translateX(3px); }
+.app-shell[data-theme] .progress-track > span { position:relative; overflow:hidden; }
+.app-shell[data-theme] .progress-track > span::after { content:""; position:absolute; inset:0; background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent); transform:translateX(-100%); animation:bar-shine 3.2s ease-in-out infinite; }
+@keyframes bar-shine { 0%,55% { transform:translateX(-100%); } 100% { transform:translateX(100%); } }
+.app-shell[data-theme] .primary-button,.app-shell[data-theme] .secondary-button,.app-shell[data-theme] .nav-link,.app-shell[data-theme] .curriculum-card,.app-shell[data-theme] .roadmap-week-header { -webkit-tap-highlight-color:transparent; }
+.app-shell[data-theme] .primary-button:active,.app-shell[data-theme] .secondary-button:active { transform:scale(.97); }
+.app-shell[data-theme] .nav-link:not(.is-active):hover { transform:translateX(2px); }
+.app-shell[data-theme] .eyebrow-mark { animation:pulse-dot 2.6s ease-in-out infinite; }
+@keyframes pulse-dot { 0%,100% { transform:rotate(45deg) scale(1); } 50% { transform:rotate(45deg) scale(1.35); } }
+.app-shell[data-theme] .page-content > :is(.welcome-row,.feature-header,.section-intro,.roadmap-hero) { animation:surface-rise .5s cubic-bezier(.2,.75,.25,1) both; }
+.app-shell[data-theme] :is(.roadmap-list,.review-list,.notes-list,.unit-list,.insight-summary-grid,.backup-grid,.insight-content-grid) > * { animation:surface-rise .45s cubic-bezier(.2,.75,.25,1) both; }
+.app-shell[data-theme] :is(.roadmap-list,.review-list,.notes-list,.unit-list,.insight-summary-grid,.backup-grid,.insight-content-grid) > *:nth-child(2) { animation-delay:50ms; }
+.app-shell[data-theme] :is(.roadmap-list,.review-list,.notes-list,.unit-list,.insight-summary-grid,.backup-grid,.insight-content-grid) > *:nth-child(3) { animation-delay:100ms; }
+.app-shell[data-theme] :is(.roadmap-list,.review-list,.notes-list,.unit-list,.insight-summary-grid,.backup-grid,.insight-content-grid) > *:nth-child(4) { animation-delay:150ms; }
+.app-shell[data-theme] :is(.roadmap-list,.review-list,.notes-list,.unit-list,.insight-summary-grid,.backup-grid,.insight-content-grid) > *:nth-child(n+5) { animation-delay:200ms; }
+.app-shell[data-theme] .theme-popover,.app-shell[data-theme] .profile-popover { border-radius:16px; }
+.app-shell[data-theme] ::-webkit-scrollbar { width:10px; height:10px; }
+.app-shell[data-theme] ::-webkit-scrollbar-thumb { border:3px solid transparent; border-radius:10px; background:color-mix(in srgb,var(--ui-soft,#738094) 45%,transparent); background-clip:padding-box; }
+.app-shell[data-theme] ::-webkit-scrollbar-track { background:transparent; }
+.app-shell[data-theme] :focus-visible { outline:2px solid var(--ui-accent); outline-offset:2px; }
+
+/* ===== Tablet & mobile: off-canvas navigation drawer ===== */
+@media (max-width:900px) {
+  .nav-toggle { display:inline-grid; margin-right:auto; }
+  .nav-backdrop { display:block; position:fixed; inset:0; z-index:55; background:rgba(8,12,20,.55); backdrop-filter:blur(3px); opacity:0; pointer-events:none; transition:opacity .28s ease; }
+  .nav-backdrop.is-visible { opacity:1; pointer-events:auto; }
+  .app-shell[data-theme] .sidebar { position:fixed; inset:0 auto 0 0; z-index:60; width:min(320px,86vw); height:100dvh; padding:20px 14px 16px; overflow-y:auto; border-right:1px solid var(--ui-border); transform:translateX(-104%); transition:transform .32s cubic-bezier(.2,.8,.2,1),box-shadow .3s; visibility:hidden; }
+  .app-shell[data-theme] .sidebar.is-open { transform:none; visibility:visible; box-shadow:0 0 60px rgba(0,0,0,.35); }
+  .app-shell[data-theme] .sidebar .brand { padding:0 10px 22px; }
+  .app-shell[data-theme] .sidebar .brand-mark { width:34px; height:34px; }
+  .app-shell[data-theme] .sidebar .brand-copy small,
+  .app-shell[data-theme] .sidebar .nav-section-copy small { display:block; }
+  .app-shell[data-theme] .sidebar .side-label { display:block; }
+  .app-shell[data-theme] .sidebar .side-label--sections { display:flex; }
+  .app-shell[data-theme] .sidebar .sidebar-bottom { display:block; }
+  .app-shell[data-theme] .sidebar .nav-link,
+  .app-shell[data-theme] .sidebar .nav-link:not(.nav-link--section) { display:flex; width:100%; min-height:44px; }
+  .app-shell[data-theme] .sidebar .side-feature-links { display:grid; grid-template-columns:1fr; gap:2px; margin:0; }
+  .app-shell[data-theme] .sidebar .section-nav { flex-direction:column; overflow:visible; gap:4px; }
+  .app-shell[data-theme] .sidebar .nav-link--section { min-width:0; min-height:54px; }
+  .app-shell[data-theme] .sidebar .nav-section-copy > span { max-width:none; font-size:12px; }
+  .app-shell[data-theme] .sidebar .nav-mini-progress { display:grid; }
+  .app-shell[data-theme] .sidebar .section-number { width:31px; height:31px; flex-basis:31px; }
+  .app-shell[data-theme] .main-area { margin-left:0; }
+  .app-shell[data-theme] .topbar { height:58px; gap:10px; padding:0 14px; }
+  .app-shell[data-theme] .breadcrumbs > span,.app-shell[data-theme] .breadcrumbs > b { display:none; }
+  .app-shell[data-theme] .breadcrumbs strong { font-size:13px; }
+  .app-shell[data-theme] .top-actions { gap:8px; }
+}
+@media (max-width:780px) {
+  .app-shell[data-theme] .page-content { padding:22px 16px calc(28px + env(safe-area-inset-bottom)); }
+  .app-shell[data-theme] .welcome-row h1,.app-shell[data-theme] .feature-header h1,.app-shell[data-theme] .section-intro h1 { font-size:27px; letter-spacing:-1.1px; }
+  .app-shell[data-theme] .summary-grid { grid-template-columns:1fr 1fr; }
+  .app-shell[data-theme] .page-content input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  .app-shell[data-theme] .page-content textarea,
+  .app-shell[data-theme] .page-content select { font-size:16px; }
+  .app-shell[data-theme] .primary-button,.app-shell[data-theme] .secondary-button { min-height:44px; }
+  .app-shell[data-theme] .topbar .theme-trigger,.app-shell[data-theme] .top-logout { min-height:38px; }
+  .app-shell[data-theme] .theme-popover { position:fixed; top:66px; right:12px; left:12px; width:auto; }
+  .app-shell[data-theme] .page-content .practice-filters,
+  .app-shell[data-theme] .page-content .notes-toolbar,
+  .app-shell[data-theme] .page-content .sync-signin,
+  .app-shell[data-theme] .page-content .goal-settings,
+  .app-shell[data-theme] .page-content .mock-setup-options { flex-wrap:wrap; }
+  .app-shell[data-theme] .page-content .whiteboard-toolbar { overflow-x:auto; flex-wrap:nowrap; padding-bottom:6px; }
+  .app-shell[data-theme] .page-content .whiteboard-toolbar > * { flex:0 0 auto; }
+  .app-shell[data-theme] .page-content .whiteboard-canvas-wrap { overflow:auto; -webkit-overflow-scrolling:touch; touch-action:none; }
+  .app-shell[data-theme] .page-content .insight-summary-grid { grid-template-columns:1fr 1fr; }
+  .app-shell[data-theme] .page-content .rubric-insight-row,
+  .app-shell[data-theme] .page-content .confidence-bar-row { grid-template-columns:96px 1fr 30px; }
+  .app-shell[data-theme] .page-content .mock-question { font-size:18px; }
+  .app-shell[data-theme] .page-content .study-clock { font-size:32px; }
+}
+@media (max-width:420px) {
+  .app-shell[data-theme] .summary-grid { grid-template-columns:1fr; }
+  .app-shell[data-theme] .summary-card--lead { grid-column:auto; }
+  .app-shell[data-theme] .topbar .guide-link { display:none; }
+}
+
+/* Card header rows are layout wrappers, not surfaces. */
+.app-shell[data-theme] .page-content .summary-card-top,
+.app-shell[data-theme] .page-content .curriculum-card-top { border:0; background:transparent; box-shadow:none; }

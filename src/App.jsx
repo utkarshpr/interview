@@ -6,12 +6,13 @@ import { resolveTopicContent } from './data/topicContent.js';
 import { HLDWhiteboard, LLDStudio } from './DesignViews.jsx';
 import { supabase, supabaseConfigured, adminEmail } from './supabase.js';
 import { AnimatePresence, LazyMotion, MotionConfig, domAnimation, m as motion } from 'framer-motion';
-import { ArrowRight, BookOpen, CalendarDays, ChartNoAxesCombined, ChevronDown, Cloud, Code2, Database, Eye, EyeOff, Layers3, LayoutDashboard, LoaderCircle, LockKeyhole, LogOut, Mail, Map, Mic2, Network, PencilLine, Repeat2, ShieldCheck, Sparkles, StickyNote } from 'lucide-react';
+import { ArrowRight, BookOpen, Menu, Moon, Sun, X, CalendarDays, ChartNoAxesCombined, ChevronDown, Cloud, Code2, Database, Eye, EyeOff, Layers3, LayoutDashboard, LoaderCircle, LockKeyhole, LogOut, Mail, Map as MapIcon, Mic2, Network, PencilLine, Repeat2, ShieldCheck, Sparkles, StickyNote } from 'lucide-react';
 
 const STORAGE_KEY = 'backend-atlas.progress.v1';
 const fmt = new Intl.NumberFormat('en');
 const localDay = (date = new Date()) => `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
 const themes = [
+  { id:'light', name:'Light', colors:['#f4f6f9','#2f7d5b'] },
   { id:'sage', name:'Evergreen', colors:['#101b18','#8ccaa0'] },
   { id:'ocean', name:'Deep Ocean', colors:['#111a28','#80b7ec'] },
   { id:'violet', name:'Amethyst', colors:['#191626','#b19cf1'] },
@@ -170,6 +171,7 @@ function LearningApp({ catalog, onLogout }) {
   const [profileDraft, setProfileDraft] = useState('');
   const [profileMenu, setProfileMenu] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
   const [clock, setClock] = useState(Date.now());
   const [reminderMessage, setReminderMessage] = useState('');
   const searchRef = useRef(null);
@@ -196,7 +198,25 @@ function LearningApp({ catalog, onLogout }) {
   }, [activeSectionId]);
 
   const profile = store.profiles.find((entry) => entry.id === store.activeProfileId) || store.profiles[0];
-  const theme = themes.some((entry) => entry.id === profile?.preferences?.theme) ? profile.preferences.theme : 'midnight';
+  const systemTheme = typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'midnight';
+  const theme = themes.some((entry) => entry.id === profile?.preferences?.theme) ? profile.preferences.theme : systemTheme;
+  const isLight = theme === 'light';
+  const lastDarkTheme = profile?.preferences?.lastDarkTheme || 'midnight';
+  function toggleColorMode() {
+    if (isLight) updatePreferences({ theme: lastDarkTheme });
+    else updatePreferences({ theme: 'light', lastDarkTheme: theme });
+  }
+  useEffect(() => {
+    document.documentElement.dataset.colorMode = isLight ? 'light' : 'dark';
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', isLight ? '#f4f6f9' : '#0d1117');
+  }, [isLight]);
+  useEffect(() => {
+    if (!navOpen) return undefined;
+    const onKey = (event) => { if (event.key === 'Escape') setNavOpen(false); };
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', onKey);
+    return () => { document.body.style.overflow = ''; window.removeEventListener('keydown', onKey); };
+  }, [navOpen]);
   const completed = useMemo(() => new Set(profile?.completed || []), [profile]);
   const activeSection = catalog.sections.find((section) => section.id === activeSectionId);
   const allStats = useMemo(() => {
@@ -405,7 +425,7 @@ function LearningApp({ catalog, onLogout }) {
 
   return (
     <div className="app-shell" data-theme={theme}>
-      <aside className="sidebar">
+      <aside id="app-sidebar" className={`sidebar${navOpen ? ' is-open' : ''}`} onClick={(event) => { if (event.target.closest('.nav-link, .brand')) setNavOpen(false); }}>
         <button className="brand" onClick={openOverview} aria-label="Go to dashboard">
           <span className="brand-mark"><span /><span /><span /><span /></span>
           <span className="brand-copy"><strong>Backend Atlas</strong><small>V2 · Senior engineer workspace</small></span>
@@ -415,7 +435,7 @@ function LearningApp({ catalog, onLogout }) {
           <LayoutDashboard size={17}/><span>Overview</span><span className="nav-arrow">›</span>
         </button>
         <button className={`nav-link roadmap-nav ${activeView === 'roadmap' ? 'is-active' : ''}`} onClick={openRoadmap}>
-          <Map size={17}/><span>24-week roadmap</span><span className="nav-arrow">›</span>
+          <MapIcon size={17}/><span>24-week roadmap</span><span className="nav-arrow">›</span>
         </button>
         <div className="side-label side-label--sections side-label--tools">Study tools</div>
         <div className="side-feature-links">
@@ -449,11 +469,14 @@ function LearningApp({ catalog, onLogout }) {
         </div>
       </aside>
 
+      <div className={`nav-backdrop${navOpen ? ' is-visible' : ''}`} onClick={() => setNavOpen(false)} aria-hidden="true" />
       <main className="main-area">
         <header className="topbar">
+          <button className="nav-toggle" aria-label={navOpen ? 'Close navigation' : 'Open navigation'} aria-expanded={navOpen} aria-controls="app-sidebar" onClick={() => setNavOpen((value) => !value)}>{navOpen ? <X size={20}/> : <Menu size={20}/>}</button>
           <div className="breadcrumbs"><span>Learning workspace</span><b>/</b><strong>{activeSection ? activeSection.title : ({ roadmap:'24-week roadmap', practice:'Practice answers', coding:'Coding practice', mock:'Mock interview', flashcards:'Flashcards', notes:'Notes', calendar:'Interview & event calendar', dbcheck:'Database status', hldboard:'HLD whiteboard', lld:'LLD practice', insights:'Progress insights', backup:'Backup & sync' }[activeView] || 'Overview')}</strong></div>
           <div className="top-actions">
             <a className="guide-link" href="/senior-backend-interview-preparation.pdf" target="_blank" rel="noreferrer"><BookOpen size={15}/> Open guide PDF</a>
+            <button className="mode-toggle" onClick={toggleColorMode} aria-label={isLight ? 'Switch to dark mode' : 'Switch to light mode'} title={isLight ? 'Switch to dark mode' : 'Switch to light mode'}>{isLight ? <Moon size={16}/> : <Sun size={16}/>}</button>
             <div className="theme-menu-wrap">
               <button className="theme-trigger" aria-expanded={themeOpen} aria-label="Choose appearance theme" onClick={() => setThemeOpen((value) => !value)}><span className="theme-trigger-dot" style={{background:themes.find((entry)=>entry.id===theme)?.colors[1]}}/><span>Theme</span><ChevronDown size={14}/></button>
               {themeOpen && <div className="theme-popover" role="dialog" aria-label="Appearance themes"><strong>Choose a theme</strong><p>Saved with this learner profile</p>{themes.map((option)=><button key={option.id} className={`theme-option${theme===option.id?' is-selected':''}`} aria-pressed={theme===option.id} onClick={()=>{updatePreferences({theme:option.id});setThemeOpen(false);}}><span className="theme-swatch" style={{'--swatch-dark':option.colors[0],'--swatch-accent':option.colors[1]}}/><span>{option.name}</span>{theme===option.id&&<Icon name="check" size={15}/>}</button>)}</div>}
