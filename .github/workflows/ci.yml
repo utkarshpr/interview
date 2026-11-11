@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Validate static JSON and runner syntax
+        run: |
+          node -e "for (const f of ['public/catalog.json','public/manifest.webmanifest']) JSON.parse(require('fs').readFileSync(f,'utf8'))"
+          node --check runner/server.mjs
+          node --check public/sw.js
+      - name: Build
+        run: npm run build
