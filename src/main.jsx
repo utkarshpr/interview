@@ -7,6 +7,7 @@ import './light-theme.css';
 import './polish.css';
 import './tools.css';
 import './calm.css';
+import './gradient.css';
 
 // Serve Excalidraw's fonts from this origin so the whiteboard works offline and makes no CDN requests.
 window.EXCALIDRAW_ASSET_PATH = '/excalidraw-assets/';

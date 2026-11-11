@@ -100,3 +100,30 @@
 .app-shell[data-theme] .item-note { flex:1 1 100%; width:100%; margin-top:4px; min-height:72px; }
 .app-shell[data-theme] .item-learning-tools select { min-width:140px; padding-left:10px; }
 .app-shell[data-theme] .item-learning-tools { padding-left:34px; }
+
+/* --- Roadmap: use theme tokens so it reads in light and dark --- */
+.app-shell[data-theme] .page-content :is(.roadmap-overall,.adaptive-recommendation,.roadmap-week) { border-color:var(--ui-border); color:var(--ui-text); background:var(--ui-surface); box-shadow:none; }
+.app-shell[data-theme] .page-content .adaptive-recommendation { background:linear-gradient(105deg,color-mix(in srgb,var(--ui-accent) 11%,var(--ui-surface)),var(--ui-surface)); }
+.app-shell[data-theme] .page-content .roadmap-note { border-left-color:var(--ui-accent); color:var(--ui-muted); background:color-mix(in srgb,var(--ui-accent) 8%,var(--ui-surface)); }
+.app-shell[data-theme] .page-content .roadmap-note strong { color:var(--ui-accent); }
+.app-shell[data-theme] .page-content .roadmap-phase-labels span { color:var(--ui-muted); background:var(--ui-raised); }
+.app-shell[data-theme] .page-content :is(.roadmap-hero h1,.adaptive-recommendation h2,.roadmap-overall strong,.roadmap-week-copy strong,.roadmap-topic-link strong) { color:var(--ui-text); }
+.app-shell[data-theme] .page-content :is(.roadmap-hero p,.adaptive-recommendation p,.roadmap-week-copy small,.roadmap-topic-link small,.roadmap-week-count,.roadmap-topic-progress,.roadmap-overall > span,.roadmap-week-content > p,.roadmap-chevron) { color:var(--ui-muted); }
+.app-shell[data-theme] .page-content .roadmap-overall strong small { color:var(--ui-accent); }
+.app-shell[data-theme] .page-content :is(.roadmap-week-content,.roadmap-topic-link) { border-color:var(--ui-border); }
+.app-shell[data-theme] .page-content :is(.roadmap-week-header:hover,.roadmap-topic-link:hover) { background:var(--ui-raised); }
+.app-shell[data-theme] .page-content .roadmap-week--open { border-color:color-mix(in srgb,var(--ui-accent) 30%,var(--ui-border)); }
+.app-shell[data-theme] .page-content .roadmap-week-number { color:var(--ui-accent); background:color-mix(in srgb,var(--ui-accent) 12%,var(--ui-raised)); }
+.app-shell[data-theme] .page-content .roadmap-week-copy em { color:var(--ui-accent); background:color-mix(in srgb,var(--ui-accent) 14%,transparent); }
+.app-shell[data-theme] .page-content .roadmap-topic-check { border-color:var(--ui-border); }
+.app-shell[data-theme] .page-content .roadmap-topic-check--done { border-color:var(--ui-accent); background:var(--ui-accent); }
+.app-shell[data-theme] .page-content .roadmap-overall .progress-track { background:var(--ui-raised); }
+
+/* --- Coding practice: readable run notes and test cases in both modes --- */
+.app-shell[data-theme] .page-content .coding-run-note { border-left-color:var(--ui-accent); color:var(--ui-muted); background:var(--ui-raised); }
+.app-shell[data-theme] .page-content .coding-run-note strong { color:var(--ui-accent); }
+.app-shell[data-theme] .page-content .coding-test-case { border-color:var(--ui-border); background:var(--ui-raised); }
+.app-shell[data-theme] .page-content .coding-test-case > label:not(.case-passed),
+.app-shell[data-theme] .page-content .coding-test-title strong { color:var(--ui-muted); }
+.app-shell[data-theme] .page-content .coding-test-case textarea { background:var(--ui-bg); }
+.app-shell[data-theme] .page-content .case-passed { color:var(--ui-accent); }

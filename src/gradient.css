@@ -1,0 +1,86 @@
+/* ===== Gradient accent =====
+   Applied on top of any theme when the profile has a gradient (--g1, --g2, --g-angle set inline). */
+
+/* Tell the browser each theme's real colour scheme so forced-dark modes leave it alone. */
+.app-shell[data-theme] { color-scheme:dark; }
+.app-shell[data-theme="light"] { color-scheme:light; }
+
+/* Quieter keyboard focus on sidebar links (no heavy ring around active items). */
+.app-shell[data-theme] .sidebar .nav-link:focus-visible { outline:2px solid color-mix(in srgb,var(--ui-accent) 60%,transparent); outline-offset:-2px; }
+
+/* --- Popover picker --- */
+.theme-popover { width:min(290px,calc(100vw - 24px)); }
+.gradient-picker { margin-top:12px; padding-top:12px; border-top:1px solid var(--ui-border,#303b49); }
+.gradient-picker > strong { display:block; font-size:12px; }
+.gradient-picker > p { margin:3px 0 10px; font-size:11px; }
+.gradient-presets { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-bottom:12px; }
+.gradient-swatch { height:30px; border:2px solid transparent; border-radius:9px; cursor:pointer; transition:transform .15s,border-color .15s; }
+.gradient-swatch:hover { transform:translateY(-2px); }
+.gradient-swatch.is-selected { border-color:var(--ui-text,#fff); box-shadow:0 0 0 2px var(--ui-bg,#000) inset; }
+.gradient-none { height:30px; border:1px dashed var(--ui-border,#303b49); border-radius:9px; color:var(--ui-muted,#98a3b2); background:transparent; font-size:11px; cursor:pointer; }
+.gradient-none.is-selected { border-style:solid; color:var(--ui-text,#fff); }
+.gradient-custom { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.gradient-custom label { display:grid; gap:5px; color:var(--ui-muted,#98a3b2); font-size:11px; }
+.gradient-custom input[type="color"] { width:100%; height:32px; padding:2px; border:1px solid var(--ui-border,#303b49); border-radius:8px; background:transparent; cursor:pointer; }
+.gradient-angle { grid-column:1/-1; }
+.gradient-angle input { width:100%; accent-color:var(--ui-accent); }
+.gradient-preview { height:10px; margin-top:12px; border-radius:999px; }
+
+/* --- Derived colours --- */
+.app-shell[data-gradient] {
+  --ui-grad:linear-gradient(var(--g-angle,135deg),var(--g1),var(--g2));
+  --ui-accent:var(--g1);
+  --ui-accent-strong:color-mix(in srgb,var(--g1) 70%,#fff);
+}
+.app-shell[data-gradient][data-theme="light"] {
+  --ui-accent:color-mix(in srgb,var(--g1) 72%,#0b1020);
+  --ui-accent-strong:color-mix(in srgb,var(--g1) 55%,#0b1020);
+}
+
+/* --- Where the gradient shows --- */
+.app-shell[data-gradient] .main-area {
+  background:
+    radial-gradient(ellipse 60% 40% at 90% -10%,color-mix(in srgb,var(--g2) 22%,transparent),transparent 70%),
+    radial-gradient(ellipse 50% 45% at 0% 0%,color-mix(in srgb,var(--g1) 16%,transparent),transparent 70%),
+    var(--ui-bg);
+}
+.app-shell[data-gradient] .sidebar::before { content:""; position:absolute; inset:0 0 auto 0; height:240px; background:linear-gradient(180deg,color-mix(in srgb,var(--g1) 22%,transparent),color-mix(in srgb,var(--g2) 8%,transparent) 55%,transparent); pointer-events:none; }
+.app-shell[data-gradient] .sidebar > * { position:relative; }
+.app-shell[data-gradient] .brand-mark { border-color:transparent; background:var(--ui-grad); }
+.app-shell[data-gradient] .brand-mark span,
+.app-shell[data-gradient] .brand-mark span:nth-child(2),
+.app-shell[data-gradient] .brand-mark span:nth-child(3) { background:rgba(255,255,255,.88); }
+.app-shell[data-gradient] .nav-link.is-active,
+.app-shell[data-gradient] .nav-link--section.is-active { background:linear-gradient(90deg,color-mix(in srgb,var(--g1) 22%,transparent),color-mix(in srgb,var(--g2) 10%,transparent)); box-shadow:inset 3px 0 0 var(--g1); }
+
+.app-shell[data-gradient] .page-content .primary-button,
+.app-shell[data-gradient] .install-button:hover { border:0; color:var(--g-on,#fff); background:var(--ui-grad); box-shadow:0 10px 26px -10px color-mix(in srgb,var(--g1) 80%,transparent); }
+.app-shell[data-gradient] .page-content .primary-button:hover { filter:brightness(1.08); }
+.app-shell[data-gradient] .page-content .summary-card--lead { border-color:transparent; color:var(--g-on,#fff); background:var(--ui-grad); }
+.app-shell[data-gradient] .page-content .summary-card--lead .summary-label,
+.app-shell[data-gradient] .page-content .summary-card--lead .summary-foot,
+.app-shell[data-gradient] .page-content .summary-card--lead .overall-number,
+.app-shell[data-gradient] .page-content .summary-card--lead .overall-number span { color:var(--g-on,#fff); }
+.app-shell[data-gradient] .page-content .summary-card--lead .progress-track { background:rgba(255,255,255,.28); }
+.app-shell[data-gradient] .page-content .summary-card--lead .progress-track > span { background:var(--g-on,#fff); }
+.app-shell[data-gradient] .progress-track > span,
+.app-shell[data-gradient] .progress-track--muted > span { background:var(--ui-grad); }
+.app-shell[data-gradient] .page-content :is(.confidence-bar-row i,.rubric-insight-row i,.mock-progress i,.roadmap-week-meter i) { background:var(--ui-grad); }
+.app-shell[data-gradient] .page-content .study-week-chart i { background:linear-gradient(180deg,var(--g1),var(--g2)); }
+.app-shell[data-gradient] .welcome-row h1,
+.app-shell[data-gradient] .feature-page > .feature-header h1 { background:var(--ui-grad); -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color:transparent; }
+.app-shell[data-gradient] .top-avatar,
+.app-shell[data-gradient] .avatar { border-color:transparent; color:var(--g-on,#fff); background:var(--ui-grad); }
+.app-shell[data-gradient] .curriculum-card:hover { border-color:color-mix(in srgb,var(--g1) 55%,transparent); }
+.app-shell[data-gradient] .page-content :is(.hld-q--active,.practice-prompt--selected,.coding-exercise--active,.lld-problem--active,.note-list-item--active) { border-color:color-mix(in srgb,var(--g1) 45%,transparent); background:linear-gradient(90deg,color-mix(in srgb,var(--g1) 14%,var(--ui-surface)),color-mix(in srgb,var(--g2) 8%,var(--ui-surface))); box-shadow:inset 3px 0 0 var(--g1); }
+.app-shell[data-gradient] .page-content .calendar-day--selected { color:var(--g-on,#fff); background:var(--ui-grad); }
+.app-shell[data-gradient] .page-content .calendar-day--selected * { color:var(--g-on,#fff); }
+.app-shell[data-gradient] .theme-trigger-dot { background:var(--ui-grad) !important; }
+
+/* Light theme: popovers and the top bar need real light backgrounds. */
+.app-shell[data-theme="light"] .theme-popover,
+.app-shell[data-theme="light"] .profile-popover,
+.app-shell[data-theme="light"] .user-popover { background:rgba(255,255,255,.98); border-color:var(--ui-border); }
+.app-shell[data-theme="light"] .topbar { background:rgba(255,255,255,.82); }
+.app-shell[data-theme="light"] .theme-option:hover,
+.app-shell[data-theme="light"] .theme-option.is-selected { background:var(--ui-raised); border-color:var(--ui-border); color:var(--ui-text); }

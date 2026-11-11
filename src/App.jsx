@@ -17,6 +17,21 @@ const navGroups = [
   { id:'track', label:'Track & plan', items:[['notes','Notes',StickyNote],['calendar','Calendar',CalendarDays],['insights','Insights',ChartNoAxesCombined]] },
   { id:'data', label:'Data', items:[['dbcheck','Database status',Database],['backup','Backup & sync',Cloud]] },
 ];
+const gradientPresets = [
+  { name:'Aurora', from:'#22d3ee', to:'#a855f7' },
+  { name:'Sunset', from:'#fb923c', to:'#ec4899' },
+  { name:'Ocean', from:'#38bdf8', to:'#2563eb' },
+  { name:'Forest', from:'#34d399', to:'#0d9488' },
+  { name:'Rose', from:'#fb7185', to:'#c026d3' },
+  { name:'Ember Gold', from:'#fbbf24', to:'#ef4444' },
+  { name:'Lagoon', from:'#2dd4bf', to:'#6366f1' },
+  { name:'Slate Neon', from:'#818cf8', to:'#22d3ee' },
+];
+// Pick black or white text for a gradient by the average luminance of its two colours.
+function textOnGradient(from, to) {
+  const lum = (hex) => { const n = parseInt(hex.slice(1), 16); return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255; };
+  return (lum(from) + lum(to)) / 2 > 0.62 ? '#0b1020' : '#ffffff';
+}
 const NAV_GROUPS_KEY = 'backend-atlas.navgroups';
 const themes = [
   { id:'light', name:'Light', colors:['#f4f6f9','#2f7d5b'] },
@@ -271,6 +286,9 @@ function LearningApp({ catalog, onLogout }) {
   const systemTheme = typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'midnight';
   const theme = themes.some((entry) => entry.id === profile?.preferences?.theme) ? profile.preferences.theme : systemTheme;
   const isLight = theme === 'light';
+  const gradient = profile?.preferences?.gradient || null;
+  const gradientStyle = gradient ? { '--g1': gradient.from, '--g2': gradient.to, '--g-angle': `${gradient.angle ?? 135}deg`, '--g-on': textOnGradient(gradient.from, gradient.to) } : undefined;
+  const setGradient = (patch) => updatePreferences({ gradient: patch === null ? null : { from:'#6366f1', to:'#ec4899', angle:135, name:'Custom', ...(gradient || {}), ...patch } });
   const lastDarkTheme = profile?.preferences?.lastDarkTheme || 'midnight';
   function toggleColorMode() {
     if (isLight) updatePreferences({ theme: lastDarkTheme });
@@ -494,7 +512,7 @@ function LearningApp({ catalog, onLogout }) {
   }
 
   return (
-    <div className="app-shell" data-theme={theme}>
+    <div className="app-shell" data-theme={theme} data-gradient={gradient ? 'on' : undefined} style={gradientStyle}>
       <aside id="app-sidebar" className={`sidebar${navOpen ? ' is-open' : ''}`} onClick={(event) => { if (event.target.closest('.nav-link, .brand')) setNavOpen(false); }}>
         <button className="brand" onClick={openOverview} aria-label="Go to dashboard">
           <span className="brand-mark"><span /><span /><span /><span /></span>
@@ -547,7 +565,7 @@ function LearningApp({ catalog, onLogout }) {
             <button className="mode-toggle" onClick={toggleColorMode} aria-label={isLight ? 'Switch to dark mode' : 'Switch to light mode'} title={isLight ? 'Switch to dark mode' : 'Switch to light mode'}>{isLight ? <Moon size={16}/> : <Sun size={16}/>}</button>
             <div className="theme-menu-wrap">
               <button className="theme-trigger" aria-expanded={themeOpen} aria-label="Choose appearance theme" onClick={() => setThemeOpen((value) => !value)}><span className="theme-trigger-dot" style={{background:themes.find((entry)=>entry.id===theme)?.colors[1]}}/><span>Theme</span><ChevronDown size={14}/></button>
-              {themeOpen && <div className="theme-popover" role="dialog" aria-label="Appearance themes"><strong>Choose a theme</strong><p>Saved with this learner profile</p>{themes.map((option)=><button key={option.id} className={`theme-option${theme===option.id?' is-selected':''}`} aria-pressed={theme===option.id} onClick={()=>{updatePreferences({theme:option.id});setThemeOpen(false);}}><span className="theme-swatch" style={{'--swatch-dark':option.colors[0],'--swatch-accent':option.colors[1]}}/><span>{option.name}</span>{theme===option.id&&<Icon name="check" size={15}/>}</button>)}</div>}
+              {themeOpen && <div className="theme-popover" role="dialog" aria-label="Appearance themes"><strong>Choose a theme</strong><p>Saved with this learner profile</p>{themes.map((option)=><button key={option.id} className={`theme-option${theme===option.id?' is-selected':''}`} aria-pressed={theme===option.id} onClick={()=>{updatePreferences({theme:option.id});setThemeOpen(false);}}><span className="theme-swatch" style={{'--swatch-dark':option.colors[0],'--swatch-accent':option.colors[1]}}/><span>{option.name}</span>{theme===option.id&&<Icon name="check" size={15}/>}</button>)}<div className="gradient-picker"><strong>Gradient accent</strong><p>Your own colours, saved with this profile</p><div className="gradient-presets">{gradientPresets.map((preset)=><button key={preset.name} className={`gradient-swatch${gradient?.name===preset.name?' is-selected':''}`} style={{background:`linear-gradient(135deg,${preset.from},${preset.to})`}} title={preset.name} aria-label={`${preset.name} gradient`} aria-pressed={gradient?.name===preset.name} onClick={()=>setGradient({...preset,angle:135})}/>)}<button className={`gradient-none${gradient?'':' is-selected'}`} onClick={()=>setGradient(null)}>None</button></div><div className="gradient-custom"><label><span>From</span><input type="color" aria-label="Gradient start colour" value={gradient?.from||'#6366f1'} onChange={(event)=>setGradient({from:event.target.value,name:'Custom'})}/></label><label><span>To</span><input type="color" aria-label="Gradient end colour" value={gradient?.to||'#ec4899'} onChange={(event)=>setGradient({to:event.target.value,name:'Custom'})}/></label><label className="gradient-angle"><span>Angle {gradient?.angle??135}°</span><input type="range" min="0" max="360" step="5" aria-label="Gradient angle" value={gradient?.angle??135} onChange={(event)=>setGradient({angle:Number(event.target.value),name:gradient?.name||'Custom'})}/></label></div><div className="gradient-preview" style={{background:`linear-gradient(${gradient?.angle??135}deg,${gradient?.from||'#6366f1'},${gradient?.to||'#ec4899'})`}}/></div></div>}
             </div>
             <div className="user-menu-wrap">
               <button className="top-avatar" aria-expanded={userMenu} aria-label="Account menu" onClick={() => setUserMenu((value) => !value)}>{(profile?.name || 'M').slice(0, 1).toUpperCase()}</button>
