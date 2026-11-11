@@ -731,17 +731,16 @@ function Dashboard({ catalog, profile, stats, completedSections, activeTopics, n
     <section className="summary-grid" aria-label="Learning progress summary">
       <article className="summary-card summary-card--lead">
         <div className="summary-card-top"><span className="summary-label">Overall progress</span><span className="summary-icon"><Icon name="spark" size={17}/></span></div>
-        <div className="overall-number">{stats.percent}<span>%</span></div>
-        <ProgressBar value={stats.percent}/>
+        <div className="overall-row"><div className="overall-number">{stats.percent}<span>%</span></div><div className="progress-ring" role="img" aria-label={`${stats.percent}% complete`} style={{ '--p': `${stats.percent * 3.6}deg` }}><i/></div></div>
         <div className="summary-foot"><span>{fmt.format(stats.done)} topics completed</span><span>{fmt.format(stats.total)} total</span></div>
       </article>
       <article className="summary-card">
-        <div className="summary-card-top"><span className="summary-label">Sections completed</span><span className="summary-icon summary-icon--blue"><Icon name="check" size={17}/></span></div>
+        <div className="summary-card-top"><span className="summary-label">Sections completed</span><span className="summary-icon"><Icon name="check" size={17}/></span></div>
         <div className="summary-number">{completedSections}<span> / {catalog.sections.length}</span></div>
         <p className="summary-caption">Full curriculum areas</p>
       </article>
       <article className="summary-card">
-        <div className="summary-card-top"><span className="summary-label">In progress</span><span className="summary-icon summary-icon--orange"><Icon name="book" size={17}/></span></div>
+        <div className="summary-card-top"><span className="summary-label">In progress</span><span className="summary-icon"><Icon name="book" size={17}/></span></div>
         <div className="summary-number">{activeTopics}<span> topics</span></div>
         <p className="summary-caption">Started, with more to explore</p>
       </article>

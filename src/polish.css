@@ -216,3 +216,25 @@
   .app-shell[data-theme] .page-content :is(.lld-problem,.lld-problem *,.lld-editor-field > span,.lld-followups li,.lld-followups summary,.lld-save-row span) { font-size:12px; }
   .app-shell[data-theme] .page-content .lld-problem { min-height:48px; }
 }
+
+/* ===== Premium pass: overview hierarchy, ring, calmer numerals ===== */
+.app-shell[data-theme] .dashboard-page .summary-icon,
+.app-shell[data-theme] .page-content .summary-icon--blue,
+.app-shell[data-theme] .page-content .summary-icon--orange { color:var(--ui-accent-strong); background:color-mix(in srgb,var(--ui-accent) 12%,transparent); border:1px solid color-mix(in srgb,var(--ui-accent) 22%,transparent); }
+.app-shell[data-theme] .dashboard-page .summary-number,
+.app-shell[data-theme] .dashboard-page .overall-number { margin:8px 0 6px; font-size:40px; font-weight:300; letter-spacing:-1.8px; line-height:1; color:var(--ui-text); }
+.app-shell[data-theme] .dashboard-page .summary-number span,
+.app-shell[data-theme] .dashboard-page .overall-number span { margin-left:3px; color:var(--ui-muted); font-size:14px; font-weight:400; letter-spacing:0; }
+.app-shell[data-theme] .dashboard-page .summary-label { color:var(--ui-muted); font-weight:500; letter-spacing:.2px; }
+.app-shell[data-theme] .dashboard-page .summary-caption,
+.app-shell[data-theme] .dashboard-page .summary-foot { color:#a7b3c2; }
+.app-shell[data-theme] .overall-row { display:flex; align-items:center; justify-content:space-between; gap:16px; margin:4px 0 12px; }
+.app-shell[data-theme] .overall-row .overall-number { margin:0; font-size:56px; }
+.progress-ring { --p:0deg; position:relative; width:88px; height:88px; flex:0 0 88px; border-radius:50%; background:conic-gradient(var(--ui-accent) var(--p),color-mix(in srgb,var(--ui-text) 9%,transparent) 0); transition:background .7s; }
+.progress-ring i { position:absolute; inset:7px; border-radius:50%; background:#141b24; box-shadow:inset 0 0 0 1px rgba(255,255,255,.04); }
+.app-shell[data-theme="light"] .progress-ring i { background:#fff; }
+.app-shell[data-theme] .summary-card--lead { background:linear-gradient(150deg,color-mix(in srgb,var(--ui-accent) 14%,#1c252d),rgba(19,25,35,.96) 70%) !important; border-color:color-mix(in srgb,var(--ui-accent) 30%,transparent) !important; }
+@media (min-width:781px) { .app-shell[data-theme] .dashboard-page .summary-grid { grid-template-columns:1.5fr 1fr 1fr; } }
+/* 1px top highlight + gentler hover on cards */
+.app-shell[data-theme="sage"] .page-content :is(.summary-card,.curriculum-card,.study-card,.tool-card) { box-shadow:0 18px 60px -24px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.07); transition:transform .25s ease,border-color .25s ease; }
+.app-shell[data-theme="sage"] .page-content :is(.summary-card,.curriculum-card):hover { transform:translateY(-2px); border-color:color-mix(in srgb,var(--ui-accent) 32%,transparent); }
