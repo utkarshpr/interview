@@ -1,0 +1,28 @@
+// The roadmap references existing curriculum entries by [section index, topic index].
+// This keeps the weekly plan integrated with the four curriculum sections.
+export const roadmap = [
+  ['Go foundations', 'Build a reliable base in the language, collections, interfaces, and code organization.', [[0,0],[0,1],[0,21],[0,25]]],
+  ['Go design and errors', 'Practice abstraction, robust error handling, and idiomatic production code.', [[0,22],[0,5],[0,23],[0,24]]],
+  ['Concurrency fundamentals', 'Understand goroutines, scheduling, synchronization, and cancellation.', [[0,3],[0,16],[0,28],[0,29],[0,31]]],
+  ['Memory and performance', 'Connect memory behavior to profiling, complexity, and performance work.', [[0,4],[0,33],[0,34],[0,35],[0,36]]],
+  ['Networking and APIs', 'Learn network layers and design clear, secure service interfaces.', [[0,42],[0,43],[0,45],[0,47]]],
+  ['Testing and service quality', 'Build confidence with testing, debugging, and production workflows.', [[0,12],[0,19]]],
+  ['Relational database basics', 'Strengthen SQL and relational modeling before database internals.', [[2,0],[2,38],[2,39],[2,40]]],
+  ['SQL and indexes', 'Practice advanced queries, indexes, and execution-plan reasoning.', [[2,41],[2,42],[2,43],[2,3]]],
+  ['PostgreSQL and transactions', 'Study storage, MVCC, isolation, locks, and durable writes.', [[2,45],[2,46],[2,47],[2,48],[2,49],[2,50]]],
+  ['Scaling data stores', 'Compare replication and partitioning across relational systems.', [[2,5],[2,51],[2,52],[2,53],[2,54],[2,55]]],
+  ['NoSQL data modeling', 'Choose document and wide-column models based on access patterns.', [[2,9],[2,10],[2,13],[2,17]]],
+  ['Trading data systems', 'Explore time-series storage and database designs for trading workloads.', [[2,19],[2,20],[2,21],[2,63],[2,26]]],
+  ['Containers and deployment', 'Package services, optimize images, and understand production runtime basics.', [[1,1],[1,2],[1,3],[1,4]]],
+  ['Traffic and edge', 'Trace requests through DNS, proxies, load balancers, CDNs, and edge security.', [[1,25],[1,26],[1,27],[1,28],[1,29],[1,31]]],
+  ['Resilience patterns', 'Apply timeouts, retries, circuit breakers, and fallback behavior safely.', [[1,32],[1,33],[1,34],[1,35],[1,36],[1,37]]],
+  ['Redis and caching', 'Learn cache design, invalidation, data structures, and persistence.', [[1,7],[1,8],[1,9],[1,55],[1,56],[1,48]]],
+  ['Distributed Redis', 'Study replication, Sentinel, Cluster, locking, and shared state.', [[1,47],[1,52],[1,53],[1,54],[1,58]]],
+  ['Kafka foundations', 'Understand topics, partitions, producers, consumers, and event-driven design.', [[1,12],[1,13],[1,14],[1,69]]],
+  ['Reliable event processing', 'Handle delivery guarantees, ordering, schemas, and failure recovery.', [[1,62],[1,65],[1,66],[1,64],[1,15],[1,16],[1,17],[1,70]]],
+  ['Distributed systems', 'Reason about partial failure, CAP, consistency, coordination, and transactions.', [[3,0],[3,1],[3,2],[3,3],[3,5]]],
+  ['Architecture and LLD', 'Use design patterns and low-level design to structure maintainable services.', [[3,7],[3,9],[3,10],[3,28],[3,29]]],
+  ['High-level design', 'Practice requirements, components, scaling, and system tradeoffs.', [[3,30],[3,31],[3,32],[3,33],[3,36]]],
+  ['Cloud, security, and operations', 'Cover cloud networking, security, observability, SRE, and delivery.', [[3,14],[3,15],[3,16],[3,17],[3,18],[3,19],[3,20],[3,21],[3,22],[3,23],[3,25]]],
+  ['Trading platform capstone', 'Bring the topics together in an order platform design and interview review.', [[3,36],[3,37],[3,38],[3,40],[3,41],[3,43],[3,54],[3,55],[3,56]]],
+].map(([title, focus, topicRefs], index) => ({ week: index + 1, title, focus, topicRefs }));
