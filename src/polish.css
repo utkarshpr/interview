@@ -296,3 +296,20 @@
 .app-shell[data-theme] .nav-toggle { transition:transform .2s; }
 .app-shell[data-theme] .nav-toggle:active { transform:scale(.92); }
 @media (prefers-reduced-motion:reduce) { .progress-ring,.app-shell[data-theme] .learning-item-wrap,.app-shell[data-theme] .nav-group-items > *,.app-shell[data-theme] .section-nav > * { animation:none !important; } }
+
+/* ===== Per-question details ===== */
+.app-shell[data-theme] .item-meta { display:flex; flex-wrap:wrap; align-items:center; gap:4px 10px; margin:-2px 40px 8px 27px; color:var(--ui-soft); font-size:11.5px; }
+.app-shell[data-theme] .item-meta > span:not(:first-child)::before { content:"·"; margin-right:10px; color:var(--ui-border); }
+.app-shell[data-theme] .item-level { padding:1px 8px; border:1px solid currentColor; border-radius:999px; font-size:10.5px; font-weight:600; letter-spacing:.2px; }
+.app-shell[data-theme] .item-meta > .item-level::before { content:none; }
+.app-shell[data-theme] .item-level--easy { color:#8fcba0; }
+.app-shell[data-theme] .item-level--medium { color:#e3c27d; }
+.app-shell[data-theme] .item-level--hard { color:#ea9a8c; }
+.app-shell[data-theme] .item-level--hands-on { color:#87aef7; }
+.app-shell[data-theme] .item-status--confident,.app-shell[data-theme] .item-status--done { color:var(--ui-accent-strong); }
+.app-shell[data-theme] .item-status--learning,.app-shell[data-theme] .item-status--practicing { color:#e3c27d; }
+.app-shell[data-theme] .item-tags { display:flex; flex:1 1 100%; flex-wrap:wrap; gap:6px; }
+.app-shell[data-theme] .item-tag { max-width:100%; padding:2px 9px; overflow:hidden; border:1px solid var(--ui-border); border-radius:999px; color:var(--ui-muted); font-size:11px; text-overflow:ellipsis; white-space:nowrap; text-decoration:none; }
+.app-shell[data-theme] .item-tag--link { color:var(--ui-accent-strong); border-color:color-mix(in srgb,var(--ui-accent) 30%,transparent); }
+.app-shell[data-theme] .item-tag--link:hover { background:color-mix(in srgb,var(--ui-accent) 12%,transparent); }
+@media (max-width:780px) { .app-shell[data-theme] .item-meta { margin-left:0; margin-right:0; } }

@@ -75,11 +75,38 @@ function MinutesInput({ value, onCommit, min = 15, max = 600 }) {
   return <input type="number" inputMode="numeric" min={min} max={max} step="5" value={draft} aria-label="Daily study goal in minutes" onFocus={() => setEditing(true)} onChange={(event) => setDraft(event.target.value)} onBlur={commit} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); }}/>;
 }
 
-function ItemNote({ label, value, onChange }) {
+function estimateItem(item) {
+  const text = item.text || '';
+  if (item.kind === 'Exercise') return { level: 'Hands-on', minutes: 20 };
+  if (item.kind === 'Concept') return { level: 'Easy', minutes: 3 };
+  if (text.length > 90 || /design|architect|trade-?off|scal|consisten|concurren|distributed|internals|optimi|failure|deadlock/i.test(text)) return { level: 'Hard', minutes: 8 };
+  if (/differen|compare|\bvs\b|why|how|when/i.test(text)) return { level: 'Medium', minutes: 5 };
+  return { level: 'Easy', minutes: 3 };
+}
+function agoLabel(timestamp) {
+  if (!timestamp) return '';
+  const days = Math.floor((Date.now() - timestamp) / 86400000);
+  return days <= 0 ? 'today' : days === 1 ? 'yesterday' : `${days}d ago`;
+}
+function itemStatus(isDone, details) {
+  if (isDone) return details.confidence === 'confident' ? 'Confident' : 'Done';
+  if (details.confidence || details.note || details.touchedAt) return details.confidence === 'practicing' ? 'Practicing' : 'Learning';
+  return 'Not started';
+}
+function answerOutline(item) {
+  const text = item.text || '';
+  if (item.kind === 'Exercise') return 'Approach, key steps, edge cases, complexity…';
+  if (/differen|compare|\bvs\b/i.test(text)) return 'List 3 differences, then when you would pick each…';
+  if (/design|architect|scal/i.test(text)) return 'Requirements, core components, trade-offs, failure modes…';
+  if (/^what is|^what are|^define/i.test(text)) return 'One-line definition, why it exists, a short example…';
+  return 'Your answer outline: definition, example, trade-offs…';
+}
+
+function ItemNote({ label, value, onChange, placeholder = 'Add a note, example, or answer outline…' }) {
   const [open, setOpen] = useState(false);
   return <>
     <button type="button" className={`note-toggle${value ? ' note-toggle--has' : ''}${open ? ' is-open' : ''}`} aria-expanded={open} onClick={() => setOpen((current) => !current)}><PencilLine size={13}/><span>{value ? 'Note' : 'Add note'}</span></button>
-    {open && <textarea className="item-note" autoFocus aria-label={`Notes for ${label}`} placeholder="Add a note, example, or answer outline…" value={value} onChange={(event) => onChange(event.target.value)} rows={3}/>}
+    {open && <textarea className="item-note" autoFocus aria-label={`Notes for ${label}`} placeholder={placeholder} value={value} onChange={(event) => onChange(event.target.value)} rows={3}/>}
   </>;
 }
 
@@ -367,12 +394,12 @@ function LearningApp({ catalog, onLogout }) {
       const selected = current.profiles.find((entry) => entry.id === current.activeProfileId);
       const set = new Set(selected.completed || []);
       if (set.has(itemId)) set.delete(itemId); else set.add(itemId);
-      return { ...current, profiles: current.profiles.map((entry) => entry.id === selected.id ? { ...entry, completed: [...set] } : entry) };
+      return { ...current, profiles: current.profiles.map((entry) => entry.id === selected.id ? { ...entry, completed: [...set], itemData: { ...(entry.itemData || {}), [itemId]: { ...(entry.itemData?.[itemId] || {}), touchedAt: Date.now() } } } : entry) };
     });
   }
 
   function updateItemData(itemId, patch) {
-    setStore((current) => ({ ...current, profiles: current.profiles.map((entry) => entry.id === current.activeProfileId ? { ...entry, itemData: { ...(entry.itemData || {}), [itemId]: { ...(entry.itemData?.[itemId] || {}), ...patch } } } : entry) }));
+    setStore((current) => ({ ...current, profiles: current.profiles.map((entry) => entry.id === current.activeProfileId ? { ...entry, itemData: { ...(entry.itemData || {}), [itemId]: { ...(entry.itemData?.[itemId] || {}), ...patch, touchedAt: Date.now() } } } : entry) }));
   }
 
   function savePracticeAnswer(itemId, answer) {
@@ -877,11 +904,12 @@ function SectionView({ section, catalog, completed, onToggle, itemData, onUpdate
                   <input type="checkbox" checked={completed.has(item.id)} onChange={() => onToggle(item.id)}/><span className="custom-check"><Icon name="check" size={13}/></span>
                   <span className="learning-item-text">{item.text}</span><span className={`item-kind item-kind--${item.kind.toLowerCase()}`}>{item.kind}</span>
                 </label>
+                {(() => { const est = estimateItem(item); const status = itemStatus(completed.has(item.id), details); return <div className="item-meta"><span className={`item-level item-level--${est.level.toLowerCase()}`}>{est.level}</span><span>~{est.minutes} min</span><span className={`item-status item-status--${status.toLowerCase().replace(' ', '-')}`}>{status}</span>{details.touchedAt && <span>Reviewed {agoLabel(details.touchedAt)}</span>}</div>; })()}
                 <button type="button" className="item-tools-toggle" aria-expanded={showTools} aria-label={`Study tools for ${item.text}`} onClick={() => setOpenItem(showTools ? null : item.id)}>{showTools ? '–' : '⋯'}</button>
-                {showTools && <div className="item-learning-tools">
+                {showTools && <div className="item-learning-tools"><div className="item-tags"><span className="item-tag">{cleanHeading(topic.title)}</span><span className="item-tag">{section.title}</span>{learningNote?.resources?.[0] && <a className="item-tag item-tag--link" href={learningNote.resources[0][1]} target="_blank" rel="noreferrer">{learningNote.resources[0][0]} ↗</a>}</div>
                   <label className="confidence-control"><span>Confidence</span><select aria-label={`Confidence for ${item.text}`} value={details.confidence || ''} onChange={(event) => onUpdateItem(item.id, { confidence: event.target.value })}><option value="">Rate confidence</option><option value="learning">Learning</option><option value="practicing">Practicing</option><option value="confident">Confident</option></select></label>
                   <button className={`review-toggle ${details.reviewAt ? 'review-toggle--active' : ''}`} onClick={() => onUpdateItem(item.id, { reviewAt: details.reviewAt ? null : Date.now() + 3 * 24 * 60 * 60 * 1000 })}>{details.reviewAt ? (isDue ? 'Review due · clear' : 'Review scheduled · clear') : 'Need review · in 3 days'}</button>
-                  <ItemNote label={item.text} value={details.note || ''} onChange={(note) => onUpdateItem(item.id, { note })}/>
+                  <ItemNote label={item.text} placeholder={answerOutline(item)} value={details.note || ''} onChange={(note) => onUpdateItem(item.id, { note })}/>
                 </div>}
               </div>;
             }) : <div className="empty-unit">This section is a reference overview. Its subtopics are tracked below.</div>}
