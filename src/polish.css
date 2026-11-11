@@ -171,7 +171,7 @@
 
 /* ===== Login-style atmosphere for the Evergreen (default) theme ===== */
 .app-shell[data-theme="sage"] { --ui-bg:#0b1018; background:#0b1018; }
-.app-shell[data-theme="sage"]:not([data-gradient]) .main-area { background:radial-gradient(ellipse at 12% 0%,rgba(73,119,105,.24),transparent 42%),radial-gradient(ellipse at 90% 95%,rgba(91,91,164,.13),transparent 40%),linear-gradient(120deg,#0c1518 0%,#0d1420 56%,#111322 100%); background-attachment:fixed; }
+.app-shell[data-theme="sage"].main-area { background:radial-gradient(ellipse at 12% 0%,rgba(73,119,105,.24),transparent 42%),radial-gradient(ellipse at 90% 95%,rgba(91,91,164,.13),transparent 40%),linear-gradient(120deg,#0c1518 0%,#0d1420 56%,#111322 100%); background-attachment:fixed; }
 .app-shell[data-theme="sage"] .sidebar { background:linear-gradient(180deg,rgba(14,22,24,.97),rgba(12,17,26,.98)); }
 .app-shell[data-theme="sage"] .topbar { background:rgba(11,16,24,.72); backdrop-filter:blur(14px); }
 .app-shell[data-theme="sage"] .page-content :is(.summary-card,.curriculum-card,.study-card,.section-progress-card,.tool-card) { border-color:rgba(175,194,185,.16); background:linear-gradient(160deg,rgba(28,37,45,.9),rgba(19,25,35,.94)); box-shadow:0 18px 60px -24px rgba(0,0,0,.5),inset 0 1px rgba(255,255,255,.025); }
@@ -195,4 +195,24 @@
 .app-shell[data-theme] .gradient-custom { padding:0 4px; }
 @media (max-width:780px) {
   .app-shell[data-theme] .theme-popover { position:fixed; top:64px; right:12px; left:auto; width:min(240px,calc(100vw - 24px)); max-height:calc(100dvh - 80px); overflow-y:auto; }
+}
+
+/* ===== Study tools hidden until a row's ⋯ is tapped ===== */
+.app-shell[data-theme] .learning-item-wrap { position:relative; }
+.app-shell[data-theme] .item-tools-toggle { position:absolute; top:6px; right:8px; min-width:34px; height:30px; border:0; border-radius:8px; color:var(--ui-soft); background:transparent; font-size:18px; line-height:1; cursor:pointer; }
+.app-shell[data-theme] .item-tools-toggle:hover,.app-shell[data-theme] .item-tools-toggle[aria-expanded="true"] { color:var(--ui-text); background:color-mix(in srgb,var(--ui-text) 8%,transparent); }
+.app-shell[data-theme] .learning-item-wrap .learning-item { padding-right:40px; }
+.app-shell[data-theme] .page-content .learning-item { border-bottom-color:transparent; }
+.app-shell[data-theme="light"] .page-content .learning-item { border-bottom-color:transparent; }
+
+/* ===== Phone readability: code and small controls ===== */
+@media (max-width:780px) {
+  .app-shell[data-theme] .page-content :is(pre,code,pre *,code *,.code-editor,.code-editor *) { font-size:12px; line-height:1.55; }
+  .app-shell[data-theme] .page-content :is(.primary-button,.secondary-button,.coding-source-link,.coding-done-mark) { font-size:12.5px; }
+  .app-shell[data-theme] .page-content :is(.case-remove,.test-case button,.hld-board-bar button) { min-width:36px; min-height:36px; font-size:12px; }
+  .app-shell[data-theme] .page-content .coding-source-link { display:inline-flex; align-items:center; min-height:36px; }
+}
+@media (max-width:780px) {
+  .app-shell[data-theme] .page-content :is(.lld-problem,.lld-problem *,.lld-editor-field > span,.lld-followups li,.lld-followups summary,.lld-save-row span) { font-size:12px; }
+  .app-shell[data-theme] .page-content .lld-problem { min-height:48px; }
 }

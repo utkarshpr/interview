@@ -17,21 +17,6 @@ const navGroups = [
   { id:'track', label:'Track & plan', items:[['notes','Notes',StickyNote],['calendar','Calendar',CalendarDays],['insights','Insights',ChartNoAxesCombined]] },
   { id:'data', label:'Data', items:[['dbcheck','Database status',Database],['backup','Backup & sync',Cloud]] },
 ];
-const gradientPresets = [
-  { name:'Aurora', from:'#22d3ee', to:'#a855f7' },
-  { name:'Sunset', from:'#fb923c', to:'#ec4899' },
-  { name:'Ocean', from:'#38bdf8', to:'#2563eb' },
-  { name:'Forest', from:'#34d399', to:'#0d9488' },
-  { name:'Rose', from:'#fb7185', to:'#c026d3' },
-  { name:'Ember Gold', from:'#fbbf24', to:'#ef4444' },
-  { name:'Lagoon', from:'#2dd4bf', to:'#6366f1' },
-  { name:'Slate Neon', from:'#818cf8', to:'#22d3ee' },
-];
-// Pick black or white text for a gradient by the average luminance of its two colours.
-function textOnGradient(from, to) {
-  const lum = (hex) => { const n = parseInt(hex.slice(1), 16); return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255; };
-  return (lum(from) + lum(to)) / 2 > 0.62 ? '#0b1020' : '#ffffff';
-}
 const NAV_GROUPS_KEY = 'backend-atlas.navgroups';
 const themes = [
   { id:'light', name:'Light', colors:['#f4f6f9','#2f7d5b'] },
@@ -305,9 +290,6 @@ function LearningApp({ catalog, onLogout }) {
   const systemTheme = 'sage';
   const theme = themes.some((entry) => entry.id === profile?.preferences?.theme) ? profile.preferences.theme : systemTheme;
   const isLight = theme === 'light';
-  const gradient = profile?.preferences?.gradient || null;
-  const gradientStyle = gradient ? { '--g1': gradient.from, '--g2': gradient.to, '--g-angle': `${gradient.angle ?? 135}deg`, '--g-on': textOnGradient(gradient.from, gradient.to) } : undefined;
-  const setGradient = (patch) => updatePreferences({ gradient: patch === null ? null : { from:'#6366f1', to:'#ec4899', angle:135, name:'Custom', ...(gradient || {}), ...patch } });
   const lastDarkTheme = profile?.preferences?.lastDarkTheme || 'midnight';
   function toggleColorMode() {
     if (isLight) updatePreferences({ theme: lastDarkTheme });
@@ -531,7 +513,7 @@ function LearningApp({ catalog, onLogout }) {
   }
 
   return (
-    <div className="app-shell" data-theme={theme} data-gradient={gradient ? 'on' : undefined} style={gradientStyle}>
+    <div className="app-shell" data-theme={theme}>
       <aside id="app-sidebar" className={`sidebar${navOpen ? ' is-open' : ''}`} onClick={(event) => { if (event.target.closest('.nav-link, .brand')) setNavOpen(false); }}>
         <button className="brand" onClick={openOverview} aria-label="Go to dashboard">
           <span className="brand-mark"><span /><span /><span /><span /></span>
@@ -813,6 +795,7 @@ function Dashboard({ catalog, profile, stats, completedSections, activeTopics, n
 }
 
 function SectionView({ section, catalog, completed, onToggle, itemData, onUpdateItem, onOpenPrerequisite, expandedTopicId, setExpandedTopicId, search, setSearch, filter, setFilter, searchRef, onBack }) {
+  const [openItem, setOpenItem] = useState(null);
   const stats = getStats(section, completed);
   const query = search.trim().toLowerCase();
   const filteredTopics = section.topics.map((topic) => {
@@ -877,16 +860,18 @@ function SectionView({ section, catalog, completed, onToggle, itemData, onUpdate
             {topic.items.length > 0 ? topic.visibleItems.map((item) => {
               const details = itemData[item.id] || {};
               const isDue = details.reviewAt && details.reviewAt <= Date.now();
+              const showTools = openItem === item.id || !!(details.confidence || details.reviewAt || details.note);
               return <div className={`learning-item-wrap ${completed.has(item.id) ? 'learning-item-wrap--done' : ''}`} key={item.id}>
                 <label className={`learning-item ${completed.has(item.id) ? 'learning-item--done' : ''}`}>
                   <input type="checkbox" checked={completed.has(item.id)} onChange={() => onToggle(item.id)}/><span className="custom-check"><Icon name="check" size={13}/></span>
                   <span className="learning-item-text">{item.text}</span><span className={`item-kind item-kind--${item.kind.toLowerCase()}`}>{item.kind}</span>
                 </label>
-                <div className="item-learning-tools">
+                <button type="button" className="item-tools-toggle" aria-expanded={showTools} aria-label={`Study tools for ${item.text}`} onClick={() => setOpenItem(showTools ? null : item.id)}>{showTools ? '–' : '⋯'}</button>
+                {showTools && <div className="item-learning-tools">
                   <label className="confidence-control"><span>Confidence</span><select aria-label={`Confidence for ${item.text}`} value={details.confidence || ''} onChange={(event) => onUpdateItem(item.id, { confidence: event.target.value })}><option value="">Rate confidence</option><option value="learning">Learning</option><option value="practicing">Practicing</option><option value="confident">Confident</option></select></label>
                   <button className={`review-toggle ${details.reviewAt ? 'review-toggle--active' : ''}`} onClick={() => onUpdateItem(item.id, { reviewAt: details.reviewAt ? null : Date.now() + 3 * 24 * 60 * 60 * 1000 })}>{details.reviewAt ? (isDue ? 'Review due · clear' : 'Review scheduled · clear') : 'Need review · in 3 days'}</button>
                   <ItemNote label={item.text} value={details.note || ''} onChange={(note) => onUpdateItem(item.id, { note })}/>
-                </div>
+                </div>}
               </div>;
             }) : <div className="empty-unit">This section is a reference overview. Its subtopics are tracked below.</div>}
           </div>}
